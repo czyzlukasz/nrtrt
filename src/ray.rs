@@ -1,5 +1,6 @@
 use crate::vector::Vector;
 
+#[derive(Clone, Copy)]
 pub struct Ray
 {
     pub start_position: Vector,

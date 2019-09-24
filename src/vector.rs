@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector
 {
     pub x: f64,
@@ -66,6 +66,11 @@ impl Vector
     {
         let sum_of_squares = self.x.powf(2.) + self.y.powf(2.) + self.z.powf(2.);
         return sum_of_squares.sqrt();
+    }
+
+    pub fn dot(&self, other: Vector) -> f64
+    {
+        return self.x * other.x + self.y * other.y + self.z * other.z;
     }
 }
 
