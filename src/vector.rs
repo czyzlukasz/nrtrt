@@ -62,6 +62,14 @@ impl ops::Mul<Vector> for Vector
 
 impl Vector
 {
+    pub fn new() -> Vector
+    {
+        Vector{
+            x: 0.,
+            y: 0.,
+            z: 0.,
+        }
+    }
     pub fn distance(&self) -> f64
     {
         let sum_of_squares = self.x.powf(2.) + self.y.powf(2.) + self.z.powf(2.);
@@ -71,6 +79,30 @@ impl Vector
     pub fn dot(&self, other: Vector) -> f64
     {
         return self.x * other.x + self.y * other.y + self.z * other.z;
+    }
+    pub fn rotate_x(&mut self, angle: f64)
+    {
+        let angle_rad = angle.to_radians();
+        let y = self.y * angle_rad.cos() - self.z * angle_rad.sin();
+        let z = self.y * angle_rad.sin() + self.z * angle_rad.cos();
+        self.y = y;
+        self.z = z;
+    }
+    pub fn rotate_y(&mut self, angle: f64)
+    {
+        let angle_rad = angle.to_radians();
+        let x = self.x * angle_rad.cos() + self.z * angle_rad.sin();
+        let z = self.z * angle_rad.cos() - self.x * angle_rad.sin();
+        self.x = x;
+        self.z = z;
+    }
+    pub fn rotate_z(&mut self, angle: f64)
+    {
+        let angle_rad = angle.to_radians();
+        let x = self.x * angle_rad.cos() - self.y * angle_rad.sin();
+        let y = self.x * angle_rad.sin() + self.y * angle_rad.cos();
+        self.x = x;
+        self.y = y;
     }
 }
 
@@ -148,4 +180,29 @@ mod tests
         let distance = vec_a.distance();
         assert_approx_eq!(distance , 6.9613, 1e-4);
     }
+
+    #[test]
+    fn rotate()
+    {
+        let (mut vec_a, _vec_b) = get_test_vectors();
+
+        vec_a.rotate_x(45.);
+        assert_approx_eq!(vec_a.x, 2.1);
+        assert_approx_eq!(vec_a.y, -1.626345);
+        assert_approx_eq!(vec_a.z, 6.434671);
+
+        vec_a.rotate_y(-30.);
+        assert_approx_eq!(vec_a.x, -1.398682);
+        assert_approx_eq!(vec_a.y, -1.626345);
+        assert_approx_eq!(vec_a.z, 6.622590);
+
+        vec_a.rotate_z(120.);
+        assert_approx_eq!(vec_a.x, 2.107798);
+        assert_approx_eq!(vec_a.y, -0.398121);
+        assert_approx_eq!(vec_a.z, 6.622590);
+
+    }
 }
+//x: 2.1,
+//y: 3.4,
+//z: 5.7,

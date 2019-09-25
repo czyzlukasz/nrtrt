@@ -1,33 +1,29 @@
-use crate::shapes::{Collision, Position};
+use crate::shapes::Collision;
 use crate::ray::Ray;
 use std::rc::Rc;
-use std::ops::Deref;
-use std::fmt::Error;
-
-//Combined trait
-trait CollisionPosition: Collision + Position{}
+use std::f64;
 
 pub struct World{
-    shapes: Vec<Rc<dyn CollisionPosition>>
+    shapes: Vec<Rc<dyn Collision>>
 }
 
 impl World{
-    fn new() -> World
+    pub fn new() -> World
     {
         World{
             shapes: vec![]
         }
     }
 
-    fn add_shape(& mut self, shape: Rc<dyn CollisionPosition>)
+    pub fn add_shape(& mut self, shape: Rc<dyn Collision>)
     {
         self.shapes.push( shape);
     }
 
-    fn items_that_collide(&self, ray: Ray) -> Result<Rc<dyn CollisionPosition>, Error>
+    pub fn items_that_collide(&self, ray: Ray) -> Option<Rc<dyn Collision>>
     {
-        let mut closest_item_that_collide: Option<Rc<dyn CollisionPosition>> = None;
-        let mut smallest_distance = -1.;
+        let mut closest_item_that_collide: Option<Rc<dyn Collision>> = None;
+        let mut smallest_distance = f64::MAX;
         for shape in self.shapes.iter()
         {
             // Check if ray will even collide with shape to avoid unnecessary calculations
@@ -35,7 +31,7 @@ impl World{
             {
                 let point = shape.collision_point(ray);
                 match point{
-                    Ok(collision_point) => {
+                    Some(collision_point) => {
                         // Calculate the distance to closest collistion, because ray will end in
                         // the first collision
                         let distance = (collision_point - shape.position()).distance();
@@ -45,14 +41,14 @@ impl World{
                             closest_item_that_collide = Some(shape.clone());
                         }
                     }
-                    Err(_) => continue
+                    None => continue
                 };
             }
         }
         match closest_item_that_collide
         {
-            Some(item) => Ok(item),
-            None => Err(Error)
+            Some(item) => Some(item),
+            None => None
         }
     }
 }

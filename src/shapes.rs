@@ -1,41 +1,19 @@
 use crate::ray::Ray;
 use crate::vector::Vector;
-use std::fmt::Error;
 
 pub trait Collision
 {
     fn can_collide(&self, ray: Ray) -> bool;
-    fn collision_point(&self, ray: Ray) -> Result<Vector, Error>;
+    fn collision_point(&self, ray: Ray) -> Option<Vector>;
     fn normal_at_point(&self, point: Vector) -> Vector;
-
-}
-
-pub trait Position
-{
     fn up_direction(&self) -> Vector;
     fn position(&self) -> Vector;
 }
 
 pub struct Sphere
 {
-    radius: f64,
-    position: Vector
-}
-
-impl Position for Sphere
-{
-    fn up_direction(&self) -> Vector
-    {
-        Vector{
-            x: 0.,
-            y: 0.,
-            z: 1.
-        }
-    }
-    fn position(&self) -> Vector
-    {
-        return self.position;
-    }
+    pub radius: f64,
+    pub position: Vector
 }
 
 impl Collision for Sphere
@@ -44,7 +22,7 @@ impl Collision for Sphere
     {
         return ray.distance_to_point(self.position) <= self.radius;
     }
-    fn collision_point(&self, ray: Ray) -> Result<Vector, Error>
+    fn collision_point(&self, ray: Ray) -> Option<Vector>
     {
         // start position to center
         let oc = ray.start_position - self.position;
@@ -56,19 +34,19 @@ impl Collision for Sphere
         // delta has to be positive
         if delta < 0.
         {
-            return Err(Error)
+            return None
         }
         // t is a factor which describes the point of interception
         // point of collision = start of the ray + t * direction of the ray
         let t = (-b - delta.sqrt()) / (2. * a);
         if t < 0.
         {
-            Err(Error)
+            None
         }
         else
         {
 //            println!("{:?}, {:?}", ray.start_position + ray.direction * t, (a,b,c,delta,t));
-            Ok(ray.start_position + ray.direction * t)
+            Some(ray.start_position + ray.direction * t)
         }
     }
     fn normal_at_point(&self, point: Vector) -> Vector
@@ -79,6 +57,18 @@ impl Collision for Sphere
 //            y: 1.,
 //            z: 1.
 //        }
+    }
+    fn up_direction(&self) -> Vector
+    {
+        Vector{
+            x: 0.,
+            y: 0.,
+            z: 1.
+        }
+    }
+    fn position(&self) -> Vector
+    {
+        return self.position;
     }
 }
 
@@ -159,12 +149,12 @@ mod test
         };
         let result = sphere.collision_point(ray);
         match result {
-            Ok(point) => {
+            Some(point) => {
                 assert_approx_eq!(point.x, 8.585786);
                 assert_approx_eq!(point.y, 1.);
                 assert_approx_eq!(point.z, 1.);
             },
-            Err(_) => assert!(false)
+            None => assert!(false)
         };
     }
 }
