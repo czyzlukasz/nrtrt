@@ -25,15 +25,13 @@ fn main() {
                                                                  y: 2.,
                                                                  z: -13.}}));
     world.add_shape(Rc::new(Sphere{radius: 2.,
-                                                position: Vector{x: 1.5,
+                                                position: Vector{x: 0.7,
                                                                  y: 2.,
-                                                                 z: -11.}}));
-
+                                                                 z: -11.5}}));
 
     let mut camera = Camera::new();
     camera.shoot_rays(&world);
     while camera.update()
     {
-
     }
 }

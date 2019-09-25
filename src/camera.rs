@@ -67,12 +67,21 @@ impl Camera{
                     let collision_point = item.collision_point(ray).unwrap();
 //                    let normal = item.normal_at_point(collision_point).unwrap();
                     let reflection = item.reflection_vector(collision_point);
-                    let dot_product = (ray.direction.normalized()).dot(reflection.normalized()) * 255.;
-                    println!("{:?}", dot_product as u8);
+                    let mut dot_product = - (ray.direction.normalized()).dot(reflection.normalized());
+                    if dot_product < 0.
+                    {
+                        dot_product = 0.;
+                    }
+                    else
+                    {
+                        dot_product = dot_product.powf(0.7);
+                    }
+                    let pixel_value = ((dot_product * 255.) as u8);
+                    println!("{:?}", (dot_product, pixel_value));
                     let mut pixel = self.get_pixel(x, y);
-                    pixel.r = 255 - dot_product as u8;
-                    pixel.g = 255 - dot_product as u8;
-                    pixel.b = 255 - dot_product as u8;
+                    pixel.r = pixel_value;
+                    pixel.g = pixel_value;
+                    pixel.b = pixel_value;
                 }
             }
         }
