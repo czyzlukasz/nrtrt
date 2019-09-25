@@ -19,8 +19,8 @@ impl Pixel
 
     pub fn to_u32(&self) -> u32
     {
-        let r = self.r as u32 * 255 * 255;
-        let g = self.g as u32 * 255;
+        let r = self.r as u32 * 256 * 256;
+        let g = self.g as u32 * 256;
         let b = self.b as u32;
         r + g + b
     }

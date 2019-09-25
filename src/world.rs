@@ -30,19 +30,17 @@ impl World{
             if shape.can_collide(ray)
             {
                 let point = shape.collision_point(ray);
-                match point{
-                    Some(collision_point) => {
-                        // Calculate the distance to closest collistion, because ray will end in
-                        // the first collision
-                        let distance = (collision_point - shape.position()).distance();
-                        if distance < smallest_distance
-                        {
-                            smallest_distance = distance;
-                            closest_item_that_collide = Some(shape.clone());
-                        }
+                if let Some(collision_point) = point
+                {
+                    // Calculate the distance to closest collision, because ray will end in
+                    // the first collision
+                    let distance = (collision_point - ray.start_position).distance();
+                    if distance < smallest_distance
+                    {
+                        smallest_distance = distance;
+                        closest_item_that_collide = Some(Rc::clone(&shape));
                     }
-                    None => continue
-                };
+                }
             }
         }
         match closest_item_that_collide

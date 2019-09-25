@@ -104,6 +104,16 @@ impl Vector
         self.x = x;
         self.y = y;
     }
+
+    pub fn normalized(&self) -> Vector
+    {
+        let length = self.distance();
+        Vector {
+            x: self.x / length,
+            y: self.y / length,
+            z: self.z / length
+        }
+    }
 }
 
 #[cfg(test)]

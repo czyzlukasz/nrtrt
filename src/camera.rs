@@ -2,6 +2,7 @@ use crate::vector::Vector;
 use crate::ray::Ray;
 use crate::pixel::Pixel;
 use crate::world::World;
+use crate::shapes::Sphere;
 use minifb::{Window, Key, WindowOptions};
 
 const FOV: f64 = 70.;
@@ -60,13 +61,18 @@ impl Camera{
                     start_position: Vector::new()   //TODO: change it to the position of camera
                 };
                 let items = world.items_that_collide(ray);
-                match items {
-                    Some(item) => {
-                        pixel.r = 255 as u8;
-                        pixel.g = 255 as u8;
-                        pixel.b = 255 as u8;
-                    },
-                    None => continue
+                if let Some(item) = items
+                {
+                    //TODO remove that
+                    let collision_point = item.collision_point(ray).unwrap();
+//                    let normal = item.normal_at_point(collision_point).unwrap();
+                    let reflection = item.reflection_vector(collision_point);
+                    let dot_product = (ray.direction.normalized()).dot(reflection.normalized()) * 255.;
+                    println!("{:?}", dot_product as u8);
+                    let mut pixel = self.get_pixel(x, y);
+                    pixel.r = 255 - dot_product as u8;
+                    pixel.g = 255 - dot_product as u8;
+                    pixel.b = 255 - dot_product as u8;
                 }
             }
         }

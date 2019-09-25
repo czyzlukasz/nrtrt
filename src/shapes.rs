@@ -5,7 +5,8 @@ pub trait Collision
 {
     fn can_collide(&self, ray: Ray) -> bool;
     fn collision_point(&self, ray: Ray) -> Option<Vector>;
-    fn normal_at_point(&self, point: Vector) -> Vector;
+    fn normal_at_point(&self, point: Vector) -> Option<Vector>;
+    fn reflection_vector(&self, vector: Vector) -> Vector;
     fn up_direction(&self) -> Vector;
     fn position(&self) -> Vector;
 }
@@ -49,15 +50,25 @@ impl Collision for Sphere
             Some(ray.start_position + ray.direction * t)
         }
     }
-    fn normal_at_point(&self, point: Vector) -> Vector
+    fn normal_at_point(&self, point: Vector) -> Option<Vector>
     {
-        point
-//        return Vector{
-//            x: 1.,
-//            y: 1.,
-//            z: 1.
-//        }
+        let distance = (self.position - point).distance();
+        if distance - self.radius > 0.0001
+        {
+            println!("Difference in length: {} != {}", distance, self.radius);
+            None
+        }
+        else
+        {
+            Some(point - self.position)
+        }
     }
+    fn reflection_vector(&self, vector: Vector) -> Vector
+    {
+        let normal = self.normal_at_point(vector).unwrap();
+        normal * (vector.dot(normal) * -2.) + vector
+    }
+
     fn up_direction(&self) -> Vector
     {
         Vector{
