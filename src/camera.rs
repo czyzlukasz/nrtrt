@@ -60,13 +60,13 @@ impl Camera{
                     direction: ray_direction,
                     start_position: Vector::new()   //TODO: change it to the position of camera
                 };
-                let items = world.items_that_collide(ray);
+                let items = world.item_that_collide(ray);
                 if let Some(item) = items
                 {
                     //TODO remove that
                     let collision_point = item.collision_point(ray).unwrap();
-//                    let normal = item.normal_at_point(collision_point).unwrap();
-                    let reflection = item.reflection_vector(collision_point);
+                    let normal = item.normal_at_point(collision_point).unwrap();
+                    let reflection = ray_direction.reflection(normal);
                     let mut dot_product = - (ray.direction.normalized()).dot(reflection.normalized());
                     if dot_product < 0.
                     {

@@ -20,7 +20,7 @@ impl World{
         self.shapes.push( shape);
     }
 
-    pub fn items_that_collide(&self, ray: Ray) -> Option<Rc<dyn Collision>>
+    pub fn item_that_collide(&self, ray: Ray) -> Option<Rc<dyn Collision>>
     {
         let mut closest_item_that_collide: Option<Rc<dyn Collision>> = None;
         let mut smallest_distance = f64::MAX;

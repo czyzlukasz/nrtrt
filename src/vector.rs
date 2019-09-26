@@ -114,6 +114,11 @@ impl Vector
             z: self.z / length
         }
     }
+
+    pub fn reflection(&self, normal: Vector) -> Vector
+    {
+        normal * (self.dot(normal) * -2.) + *self
+    }
 }
 
 #[cfg(test)]
@@ -210,9 +215,42 @@ mod tests
         assert_approx_eq!(vec_a.x, 2.107798);
         assert_approx_eq!(vec_a.y, -0.398121);
         assert_approx_eq!(vec_a.z, 6.622590);
+    }
 
+    #[test]
+    fn normalized()
+    {
+        let vector = Vector{
+            x: 3.,
+            y: 0.,
+            z: -4.
+        };
+
+        let normalized = vector.normalized();
+        assert_approx_eq!(normalized.distance(), 1.);
+        assert_approx_eq!(normalized.x, 0.6);
+        assert_approx_eq!(normalized.y, 0.);
+        assert_approx_eq!(normalized.z, -0.8);
+    }
+
+    #[test]
+    fn reflection()
+    {
+        let vector = Vector{
+            x: 3.,
+            y: 0.,
+            z: -4.
+        };
+
+        let normal = Vector{
+            x: 0.,
+            y: 1.,
+            z: 0.
+        };
+
+        let reflection = vector.reflection(normal);
+        assert_approx_eq!(reflection.x, 3.);
+        assert_approx_eq!(reflection.y, 0.);
+        assert_approx_eq!(reflection.z, -4.);
     }
 }
-//x: 2.1,
-//y: 3.4,
-//z: 5.7,

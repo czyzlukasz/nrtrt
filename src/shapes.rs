@@ -3,11 +3,15 @@ use crate::vector::Vector;
 
 pub trait Collision
 {
+    //Checks if ray can hit the shape's body
     fn can_collide(&self, ray: Ray) -> bool;
+    //Returns (if possible) the first point of intersection of shape with given ray
     fn collision_point(&self, ray: Ray) -> Option<Vector>;
+    //Returns (if possible) the normal vector of the shape for a given point on the shape
     fn normal_at_point(&self, point: Vector) -> Option<Vector>;
-    fn reflection_vector(&self, vector: Vector) -> Vector;
+    // Returns the "up" direction of shape
     fn up_direction(&self) -> Vector;
+    // Returns the center of the shape
     fn position(&self) -> Vector;
 }
 
@@ -46,7 +50,6 @@ impl Collision for Sphere
         }
         else
         {
-//            println!("{:?}, {:?}", ray.start_position + ray.direction * t, (a,b,c,delta,t));
             Some(ray.start_position + ray.direction * t)
         }
     }
@@ -63,11 +66,7 @@ impl Collision for Sphere
             Some(point - self.position)
         }
     }
-    fn reflection_vector(&self, vector: Vector) -> Vector
-    {
-        let normal = self.normal_at_point(vector).unwrap();
-        normal * (vector.dot(normal) * -2.) + vector
-    }
+
 
     fn up_direction(&self) -> Vector
     {
@@ -94,19 +93,15 @@ mod test
     #[test]
     fn can_collide()
     {
-        let start_position = Vector{
-            x: 1.,
-            y: 0.,
-            z: 1.
-        };
-        let direction = Vector{
-            x: 1.,
-            y: 1.,
-            z: 1.,
-        };
         let ray = Ray{
-            start_position,
-            direction
+            start_position: Vector{
+                x: 1.,
+                y: 0.,
+                z: 1.},
+            direction: Vector{
+                x: 1.,
+                y: 1.,
+                z: 1.}
         };
 
         let position = Vector{
@@ -135,19 +130,15 @@ mod test
     #[test]
     fn collision_point()
     {
-        let start_position = Vector{
+        let ray = Ray{
+            start_position: Vector{
             x: -1.,
             y: 1.,
-            z: 1.
-        };
-        let direction = Vector{
-            x: 1.,
-            y: 0.,
-            z: 0.,
-        };
-        let ray = Ray{
-            start_position,
-            direction
+            z: 1.},
+            direction: Vector{
+                x: 1.,
+                y: 0.,
+                z: 0.}
         };
 
         let sphere = Sphere{
@@ -165,7 +156,33 @@ mod test
                 assert_approx_eq!(point.y, 1.);
                 assert_approx_eq!(point.z, 1.);
             },
-            None => assert!(false)
+            None => panic!()
         };
+    }
+
+    #[test]
+    fn normal_at_point()
+    {
+        let sphere = Sphere{
+            radius: 1.,
+            position: Vector{
+                x: 0.,
+                y: 0.,
+                z: 0.
+            }
+        };
+
+        let point = Vector{
+            x: 0.70710,
+            y: 0.70710,
+            z: 0.
+        };
+        let normal = sphere.normal_at_point(point).unwrap();
+        //Add '==' to vector
+        //Because the shape is a sphere and its located in (0,0,0), the normal
+        //Vector is the same as the point vector.
+        assert_eq!(normal.x, point.x);
+        assert_eq!(normal.y, point.y);
+        assert_eq!(normal.z, point.z);
     }
 }
