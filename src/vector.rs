@@ -96,6 +96,7 @@ impl Vector
         self.x = x;
         self.z = z;
     }
+    #[allow(dead_code)]
     pub fn rotate_z(&mut self, angle: f64)
     {
         let angle_rad = angle.to_radians();

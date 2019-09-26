@@ -1,17 +1,17 @@
 #[derive(Clone, Copy, Debug)]
-pub struct Pixel
+pub struct Color
 {
     pub r: u8,  //RED
     pub g: u8,  //GREEN
     pub b: u8,  //BLUE
 }
 
-impl Pixel
+impl Color
 {
     //Return the black pixel
-    pub fn new() -> Pixel
+    pub fn new() -> Color
     {
-        Pixel{
+        Color {
             r: 0,
             g: 0,
             b: 0,
@@ -27,15 +27,31 @@ impl Pixel
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Pixel
+{
+    //Color of the pixel
+    pub color: Color
+}
+
+impl Pixel
+{
+    pub fn new() -> Pixel
+    {
+        Pixel{
+            color: Color::new()
+        }
+    }
+}
 #[cfg(test)]
 mod test
 {
-    use crate::pixel::Pixel;
+    use crate::pixel::Color;
 
     #[test]
     fn to_u32()
     {
-        let mut pixel = Pixel::new();
+        let mut pixel = Color::new();
         assert_eq!(0, pixel.to_u32());
 
         pixel.r = 23;

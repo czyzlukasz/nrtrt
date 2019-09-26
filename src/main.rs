@@ -8,7 +8,6 @@ mod camera;
 mod pixel;
 
 use vector::Vector;
-use ray::Ray;
 use shapes::Sphere;
 use world::World;
 use camera::Camera;
@@ -30,8 +29,9 @@ fn main() {
                                                                  z: -11.5}}));
 
     let mut camera = Camera::new();
-    camera.shoot_rays(&world);
     while camera.update()
     {
+//        camera.direction.rotate_y(0.5);
+        camera.shoot_primary_rays(&world);
     }
 }
