@@ -1,6 +1,6 @@
 use crate::vector::Vector;
 use crate::ray::Ray;
-use crate::pixel::{Pixel};
+use crate::pixel::{Pixel, Color};
 use crate::world::World;
 use minifb::{Window, Key, WindowOptions};
 
@@ -32,7 +32,7 @@ impl Camera{
 
     fn get_pixel(&mut self, x: u32, y: u32) -> Option<&mut Pixel>
     {
-//        Some(self.buffer[(x + y * WIDTH) as usize])
+//        Some(&mut self.buffer[(x + y * WIDTH) as usize])
         self.buffer.get_mut((x + y * WIDTH) as usize)
     }
 
@@ -82,12 +82,18 @@ impl Camera{
                         dot_product = dot_product.powf(0.7);
                     }
                     let pixel_value = (dot_product * 255.) as u8;
-                    let mut pixel = self.get_pixel(x, y).unwrap().color;
+                    let mut pixel = &mut self.get_pixel(x, y).unwrap().color;
                     pixel.r = pixel_value;
                     pixel.g = pixel_value;
                     pixel.b = pixel_value;
+//                    println!("{:?}",(dot_product, pixel_value, pixel));
                 }
             }
         }
+    }
+
+    fn calculate_light_intensity(&self, ray: &Ray, collision_point: &Vector) -> Color
+    {
+        Color::new()
     }
 }
