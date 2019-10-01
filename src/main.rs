@@ -25,9 +25,14 @@ fn main() {
                                                 position: Vector{x: 0.7,
                                                                  y: 2.,
                                                                  z: -11.5}}));
-    world.add_light(Rc::new(Lightsource::new(&Vector{x: 4.,
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: 0.,
                                                                           y: 10.,
-                                                                          z: - 14.})));
+                                                                          z: 0.},
+                                                         1.0)));
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: 30.,
+                                                                          y: -10.,
+                                                                          z: -5.},
+                                                         0.5)));
 
     let mut camera = Camera::new();
     while camera.update()

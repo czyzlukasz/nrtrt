@@ -1,12 +1,12 @@
-use crate::shapes::Collision;
+use crate::shapes::{Shape};
 use crate::ray::Ray;
 use crate::lightsource::Lightsource;
 use std::rc::Rc;
 use std::f64;
 
 pub struct World{
-    shapes: Vec<Rc<dyn Collision>>,
-    lights: Vec<Rc<Lightsource>>
+    shapes: Vec<Rc<dyn Shape>>,
+    pub lights: Vec<Rc<Lightsource>>
 }
 
 impl World{
@@ -18,7 +18,7 @@ impl World{
         }
     }
 
-    pub fn add_shape(& mut self, shape: Rc<dyn Collision>)
+    pub fn add_shape(& mut self, shape: Rc<dyn Shape>)
     {
         self.shapes.push( shape);
     }
@@ -27,9 +27,9 @@ impl World{
     {
         self.lights.push(light);
     }
-    pub fn item_that_collide(&self, ray: Ray) -> Option<Rc<dyn Collision>>
+    pub fn item_that_collide(&self, ray: Ray) -> Option<Rc<dyn Shape>>
     {
-        let mut closest_item_that_collide: Option<Rc<dyn Collision>> = None;
+        let mut closest_item_that_collide: Option<Rc<dyn Shape>> = None;
         let mut smallest_distance = f64::MAX;
         for shape in self.shapes.iter()
         {

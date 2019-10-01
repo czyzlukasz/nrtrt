@@ -15,6 +15,17 @@ pub trait Collision
     fn position(&self) -> Vector;
 }
 
+pub trait Material
+{
+    // How reflective is the surface
+    fn specular_reflectivity(&self) -> f64;
+    // How shiny is the surface
+    fn specular_reflection_parameter(&self) -> f64;
+}
+
+pub trait Shape: Collision + Material
+{}
+
 pub struct Sphere
 {
     pub radius: f64,
@@ -82,6 +93,21 @@ impl Collision for Sphere
     }
 }
 
+impl Material for Sphere
+{
+    fn specular_reflectivity(&self) -> f64 {
+        0.499
+    }
+
+    fn specular_reflection_parameter(&self) -> f64 {
+        2.
+    }
+}
+impl Shape for Sphere
+{
+
+}
+
 #[cfg(test)]
 mod test
 {
@@ -95,9 +121,9 @@ mod test
     {
         let ray = Ray{
             start_position: Vector{
-                x: 1.,
+                x: -1.,
                 y: 0.,
-                z: 1.},
+                z: -1.},
             direction: Vector{
                 x: 1.,
                 y: 1.,
@@ -125,6 +151,41 @@ mod test
         assert_eq!(true, sphere_just_big_enough.can_collide(ray));
         assert_eq!(true, sphere_huge.can_collide(ray));
         assert_eq!(false, sphere_small.can_collide(ray));
+    }
+
+    #[test]
+    fn can_collide_inside_on_border()
+    {
+        let ray = Ray{
+            start_position: Vector{
+                x:1.,
+                y:0.,
+                z:0.
+            },
+            direction: Vector{
+                x:-1.,
+                y:0.,
+                z:0.
+            }
+        };
+        let sphere_on_border = Sphere{
+            radius: 1.,
+            position: Vector{
+                x: 0.,
+                y: 0.,
+                z: 0.
+            }
+        };
+        let sphere_inside = Sphere{
+            radius: 2.,
+            position: Vector{
+                x: 0.,
+                y: 0.,
+                z: 0.
+            }
+        };
+        assert_eq!(true, sphere_on_border.can_collide(ray));
+        assert_eq!(true, sphere_inside.can_collide(ray));
     }
 
     #[test]

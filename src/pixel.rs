@@ -1,3 +1,5 @@
+use std::ops;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Color
 {
@@ -27,6 +29,29 @@ impl Color
     }
 }
 
+impl ops::Add<Color> for Color
+{
+    type Output = Color;
+    fn add(self, rhs: Color) -> Color
+    {
+        Color {
+            r: self.r + rhs.r,
+            g: self.g + rhs.g,
+            b: self.b + rhs.b,
+        }
+    }
+}
+
+impl ops::AddAssign<Color> for Color
+{
+    fn add_assign(&mut self, rhs: Color)
+    {
+        self.r += rhs.r;
+        self.g += rhs.g;
+        self.b += rhs.b;
+
+    }
+}
 #[derive(Clone, Copy, Debug)]
 pub struct Pixel
 {

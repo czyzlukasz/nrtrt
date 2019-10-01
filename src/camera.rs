@@ -3,6 +3,9 @@ use crate::ray::Ray;
 use crate::pixel::{Pixel, Color};
 use crate::world::World;
 use minifb::{Window, Key, WindowOptions};
+use crate::lightsource::Lightsource;
+use crate::shapes::{Material, Shape};
+use std::rc::Rc;
 
 const FOV: f64 = 70.;
 const WIDTH: u32 = 480;
@@ -39,7 +42,7 @@ impl Camera{
     pub fn update(&mut self) -> bool
     {
         //TODO: change that!
-        let mut temp_buffer: Vec<u32> = Vec::new();
+        let mut temp_buffer: Vec<u32> = Vec::with_capacity((WIDTH * HEIGHT) as usize);
         for pixel in 0..(WIDTH * HEIGHT)
         {
             temp_buffer.push(self.buffer[pixel as usize].color.to_u32());
@@ -68,32 +71,72 @@ impl Camera{
                 let items = world.item_that_collide(ray);
                 if let Some(item) = items
                 {
-                    //TODO remove that
+//                    //TODO remove that
                     let collision_point = item.collision_point(ray).unwrap();
                     let normal = item.normal_at_point(collision_point).unwrap();
-                    let reflection = ray_direction.reflection(normal);
-                    let mut dot_product = - (ray.direction.normalized()).dot(reflection.normalized());
-                    if dot_product < 0.
+//                    let reflection = ray_direction.reflection(normal);
+//                    let mut dot_product = - (ray.direction.normalized()).dot(reflection.normalized());
+//                    if dot_product < 0.
+//                    {
+//                        dot_product = 0.;
+//                    }
+//                    else
+//                    {
+//                        dot_product = dot_product.powf(0.7);
+//                    }
+//                    let pixel_value = (dot_product * 255.) as u8;
+//                    let pixel = &mut self.get_pixel(x, y).unwrap().color;
+//                    pixel.r = pixel_value;
+//                    pixel.g = pixel_value;
+//                    pixel.b = pixel_value;
+////                    println!("{:?}",(dot_product, pixel_value, pixel));
+                    for light in world.lights.iter()
                     {
-                        dot_product = 0.;
+                        if self.can_reflected_ray_hit_light(world, &collision_point, &light)
+                        {
+                            let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
+                            self.get_pixel(x, y).unwrap().color += color;
+                        }
                     }
-                    else
-                    {
-                        dot_product = dot_product.powf(0.7);
-                    }
-                    let pixel_value = (dot_product * 255.) as u8;
-                    let mut pixel = &mut self.get_pixel(x, y).unwrap().color;
-                    pixel.r = pixel_value;
-                    pixel.g = pixel_value;
-                    pixel.b = pixel_value;
-//                    println!("{:?}",(dot_product, pixel_value, pixel));
                 }
             }
         }
     }
 
-    fn calculate_light_intensity(&self, ray: &Ray, collision_point: &Vector) -> Color
+    fn can_reflected_ray_hit_light(&self, world: &World, collision_point: &Vector, light: &Lightsource) -> bool
     {
-        Color::new()
+        let ray = Ray{
+            start_position: *collision_point,
+            direction: light.position - *collision_point,
+
+        };
+        match world.item_that_collide(ray){
+            Some(_) => false,
+            None => true
+        }
+    }
+
+    fn calculate_light_intensity(&self, ray: &Ray, material: &Rc<dyn Shape>, collision_point: &Vector, normal: &Vector, light: &Lightsource) -> Color
+    {
+        let vector_from_collision_to_light = light.position - *collision_point;
+        let angle = ray.direction.normalized().reflection(normal.normalized()).dot(vector_from_collision_to_light.normalized());
+        if angle > 0.
+        {
+            let intensity = material.specular_reflectivity() * light.intensity * angle.powf(material.specular_reflection_parameter());
+            let normalized_intensity = (255. * intensity).min(255.);
+            Color{
+                r: normalized_intensity as u8,
+                g: normalized_intensity as u8,
+                b: normalized_intensity as u8
+            }
+        }
+        else {
+            Color{
+                r: 0,
+                g: 0,
+                b: 0
+            }
+        }
+
     }
 }
