@@ -55,7 +55,7 @@ impl Collision for Sphere
         // t is a factor which describes the point of interception
         // point of collision = start of the ray + t * direction of the ray
         let t = (-b - delta.sqrt()) / (2. * a);
-        if t < 0.
+        if t < -0.000000000001  //To avoid f64 precision error, because it could still collide and be very small negative number
         {
             None
         }
@@ -96,11 +96,11 @@ impl Collision for Sphere
 impl Material for Sphere
 {
     fn specular_reflectivity(&self) -> f64 {
-        0.499
+        0.6
     }
 
     fn specular_reflection_parameter(&self) -> f64 {
-        2.
+        4.
     }
 }
 impl Shape for Sphere

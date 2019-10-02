@@ -71,30 +71,14 @@ impl Camera{
                 let items = world.item_that_collide(ray);
                 if let Some(item) = items
                 {
-//                    //TODO remove that
                     let collision_point = item.collision_point(ray).unwrap();
                     let normal = item.normal_at_point(collision_point).unwrap();
-//                    let reflection = ray_direction.reflection(normal);
-//                    let mut dot_product = - (ray.direction.normalized()).dot(reflection.normalized());
-//                    if dot_product < 0.
-//                    {
-//                        dot_product = 0.;
-//                    }
-//                    else
-//                    {
-//                        dot_product = dot_product.powf(0.7);
-//                    }
-//                    let pixel_value = (dot_product * 255.) as u8;
-//                    let pixel = &mut self.get_pixel(x, y).unwrap().color;
-//                    pixel.r = pixel_value;
-//                    pixel.g = pixel_value;
-//                    pixel.b = pixel_value;
-////                    println!("{:?}",(dot_product, pixel_value, pixel));
                     for light in world.lights.iter()
                     {
                         if self.can_reflected_ray_hit_light(world, &collision_point, &light)
                         {
                             let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
+//                            self.get_pixel(x, y).unwrap().color = color;
                             self.get_pixel(x, y).unwrap().color += color;
                         }
                     }
@@ -120,7 +104,7 @@ impl Camera{
     {
         let vector_from_collision_to_light = light.position - *collision_point;
         let angle = ray.direction.normalized().reflection(normal.normalized()).dot(vector_from_collision_to_light.normalized());
-        if angle > 0.
+        if angle > 0.// && angle < 0.5
         {
             let intensity = material.specular_reflectivity() * light.intensity * angle.powf(material.specular_reflection_parameter());
             let normalized_intensity = (255. * intensity).min(255.);

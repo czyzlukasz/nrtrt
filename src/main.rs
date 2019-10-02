@@ -26,18 +26,19 @@ fn main() {
                                                                  y: 2.,
                                                                  z: -11.5}}));
     world.add_light(Rc::new(Lightsource::new(&Vector{x: 0.,
-                                                                          y: 10.,
-                                                                          z: 0.},
+                                                                          y: 0.,
+                                                                          z: 100.},
                                                          1.0)));
-    world.add_light(Rc::new(Lightsource::new(&Vector{x: 30.,
-                                                                          y: -10.,
-                                                                          z: -5.},
-                                                         0.5)));
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: 10.,
+                                                                          y: 0.,
+                                                                          z: -10.},
+                                                         1.5)));
 
     let mut camera = Camera::new();
     while camera.update()
     {
 //        camera.direction.rotate_y(0.5);
         camera.shoot_primary_rays(&world);
+//        println!("Boop loop");
     }
 }
