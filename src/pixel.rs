@@ -35,9 +35,9 @@ impl ops::Add<Color> for Color
     fn add(self, rhs: Color) -> Color
     {
         Color {
-            r: self.r + rhs.r,
-            g: self.g + rhs.g,
-            b: self.b + rhs.b,
+            r: (self.r as u16 + rhs.r as u16).min(255) as u8,
+            g: (self.g as u16 + rhs.g as u16).min(255) as u8,
+            b: (self.b as u16 + rhs.b as u16).min(255) as u8,
         }
     }
 }
@@ -46,9 +46,9 @@ impl ops::AddAssign<Color> for Color
 {
     fn add_assign(&mut self, rhs: Color)
     {
-        self.r += rhs.r;
-        self.g += rhs.g;
-        self.b += rhs.b;
+        self.r = (self.r as u16 + rhs.r as u16).min(255) as u8;
+        self.g = (self.g as u16 + rhs.g as u16).min(255) as u8;
+        self.b = (self.b as u16 + rhs.b as u16).min(255) as u8;
     }
 }
 

@@ -26,13 +26,23 @@ fn main() {
                                                     y: 2.,
                                                     z: -11.5}}));
 
-    world.add_light(Rc::new(Lightsource::new(&Vector{x: 0.,
+    world.add_shape(Rc::new(shapes::Rectangle::new(&Vector{x: 0.,
+                                                         y: 3.8,
+                                                         z: 0.},
+                                                  &(20., 20.,))));
+
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: 30.,
                                                      y: 0.,
-                                                     z: 100.},
+                                                     z: -10.},
                     1.0)));
 
-    world.add_light(Rc::new(Lightsource::new(&Vector{x: 10.,
-                                                     y: 0.,
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: 0.,
+                                                     y: -5.,
+                                                     z: -50.},
+                    1.)));
+
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: -10.,
+                                                     y: -10.,
                                                      z: -10.},
                     1.5)));
 

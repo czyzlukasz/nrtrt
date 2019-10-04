@@ -80,8 +80,13 @@ impl Camera{
                             let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
 //                            self.get_pixel(x, y).unwrap().color = color;
                             self.get_pixel(x, y).unwrap().color += color;
+                            // println!("{:?}", color);
                         }
                     }
+                }
+                else
+                {
+                    self.get_pixel(x, y).unwrap().color = Color{r: 128, g: 218, b: 235};
                 }
             }
         }
