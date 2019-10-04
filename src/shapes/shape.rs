@@ -1,5 +1,6 @@
 use crate::ray::Ray;
 use crate::vector::Vector;
+use crate::pixel::Color;
 
 pub trait Collision
 {
@@ -15,13 +16,15 @@ pub trait Collision
     fn position(&self) -> Vector;
 }
 
-pub trait Material
+pub trait MaterialTrait
 {
     // How reflective is the surface
     fn specular_reflectivity(&self) -> f64;
     // How shiny is the surface
     fn specular_reflection_parameter(&self) -> f64;
+    // Color of the material
+    fn color(&self) -> Color;
 }
 
-pub trait Shape: Collision + Material
+pub trait Shape: Collision + MaterialTrait
 {}

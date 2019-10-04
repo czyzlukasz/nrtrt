@@ -113,11 +113,7 @@ impl Camera{
         {
             let intensity = material.specular_reflectivity() * light.intensity * angle.powf(material.specular_reflection_parameter());
             let normalized_intensity = (255. * intensity).min(255.);
-            Color{
-                r: normalized_intensity as u8,
-                g: normalized_intensity as u8,
-                b: normalized_intensity as u8
-            }
+            material.color() * normalized_intensity
         }
         else {
             Color{

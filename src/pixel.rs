@@ -20,6 +20,15 @@ impl Color
         }
     }
 
+    pub fn white() -> Color
+    {        
+        Color {
+            r: 255,
+            g: 255,
+            b: 255,
+        } 
+    }
+
     pub fn to_u32(&self) -> u32
     {
         let r = self.r as u32 * 256 * 256;
@@ -58,9 +67,9 @@ impl ops::Mul<f64> for Color
     fn mul(self, rhs: f64) -> Color
     {
         Color {
-            r: ((self.r as f64) * rhs) as u8,
-            g: ((self.g as f64) * rhs) as u8,
-            b: ((self.b as f64) * rhs) as u8,
+            r: ((self.r as f64) * rhs).min(255.) as u8,
+            g: ((self.g as f64) * rhs).min(255.) as u8,
+            b: ((self.b as f64) * rhs).min(255.) as u8,
         }
     }
 }

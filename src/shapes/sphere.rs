@@ -1,12 +1,15 @@
 
 use crate::ray::Ray;
 use crate::vector::Vector;
-use crate::shapes::{Collision, Material, Shape};
+use crate::shapes::{Collision, MaterialTrait, Shape};
+use crate::material::Material;
+use crate::pixel::Color;
 
 pub struct Sphere
 {
     pub radius: f64,
-    pub position: Vector
+    pub position: Vector,
+    pub material: Material
 }
 
 impl Collision for Sphere
@@ -70,14 +73,17 @@ impl Collision for Sphere
     }
 }
 
-impl Material for Sphere
+impl MaterialTrait for Sphere
 {
     fn specular_reflectivity(&self) -> f64 {
-        0.6
+        self.material.specular_reflectivity
     }
 
     fn specular_reflection_parameter(&self) -> f64 {
-        4.
+        self.material.specular_reflection_parameter
+    }
+    fn color(&self) -> Color {
+        self.material.color
     }
 }
 impl Shape for Sphere
@@ -91,6 +97,7 @@ mod test
     use crate::shapes::Sphere;
     use crate::shapes::Collision;
     use crate::ray::Ray;
+    use crate::material::Material;
     use assert_approx_eq::assert_approx_eq;
 
     #[test]
@@ -114,15 +121,18 @@ mod test
         };
         let sphere_small = Sphere{
             radius: 0.5,
-            position
+            position,
+            material: Material::default()
         };
         let sphere_just_big_enough = Sphere{
             radius: 1.0,
-            position
+            position,
+            material: Material::default()
         };
         let sphere_huge = Sphere{
             radius: 5.,
-            position
+            position,
+            material: Material::default()
         };
 
         assert_eq!(true, sphere_just_big_enough.can_collide(ray));
@@ -151,7 +161,8 @@ mod test
                 x: 0.,
                 y: 0.,
                 z: 0.
-            }
+            },
+            material: Material::default()
         };
         let sphere_inside = Sphere{
             radius: 2.,
@@ -159,7 +170,8 @@ mod test
                 x: 0.,
                 y: 0.,
                 z: 0.
-            }
+            },
+            material: Material::default()
         };
         assert_eq!(true, sphere_on_border.can_collide(ray));
         assert_eq!(true, sphere_inside.can_collide(ray));
@@ -185,7 +197,8 @@ mod test
                 x: 10.,
                 y: 0.,
                 z: 0.
-            }
+            },
+            material: Material::default()
         };
         let result = sphere.collision_point(ray);
         match result {
@@ -207,7 +220,8 @@ mod test
                 x: 0.,
                 y: 0.,
                 z: 0.
-            }
+            },
+            material: Material::default()
         };
 
         let point = Vector{

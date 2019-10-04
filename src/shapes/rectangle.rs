@@ -1,32 +1,40 @@
 use crate::ray::Ray;
 use crate::vector::Vector;
-use crate::shapes::{Collision, Material, Shape};
+use crate::shapes::{Collision, MaterialTrait, Shape};
+use crate::material::Material;
+use crate::pixel::Color;
 
 pub struct Rectangle
 {
     pub first_corner: Vector,
-    pub dimensions: (f64, f64)
+    pub dimensions: (f64, f64),
+    pub material: Material
 }
 
 impl Rectangle
 {
-    pub fn new(first_corner: &Vector, dimensions: &(f64, f64)) -> Rectangle
+    pub fn new(first_corner: &Vector, dimensions: &(f64, f64), material: &Material) -> Rectangle
     {
         Rectangle{
             first_corner: *first_corner,
-            dimensions: *dimensions
+            dimensions: *dimensions,
+            material: *material
         }
+        
     }
 }
 
-impl Material for Rectangle
+impl MaterialTrait for Rectangle
 {
     fn specular_reflectivity(&self) -> f64 {
-        0.6
+        self.material.specular_reflectivity
     }
 
     fn specular_reflection_parameter(&self) -> f64 {
-        4.
+        self.material.specular_reflection_parameter
+    }
+    fn color(&self) -> Color {
+        self.material.color
     }
 }
 
@@ -91,11 +99,12 @@ mod test
     use crate::shapes::Rectangle;
     use crate::shapes::Collision;
     use crate::ray::Ray;
+    use crate::material::Material;
     use assert_approx_eq::assert_approx_eq;
 
     fn get_rectangle() -> Rectangle
     {
-        Rectangle::new(&Vector{x: 0., y:0., z:0.,}, &(100., 100.))
+        Rectangle::new(&Vector{x: 0., y:0., z:0.,}, &(100., 100.), &Material::default())
     }
     fn get_ray() -> Ray
     {
