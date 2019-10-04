@@ -72,7 +72,7 @@ impl Vector
     }
     pub fn distance(&self) -> f64
     {
-        let sum_of_squares = self.x.powf(2.) + self.y.powf(2.) + self.z.powf(2.);
+        let sum_of_squares = self.x.powi(2) + self.y.powi(2) + self.z.powi(2);
         return sum_of_squares.sqrt();
     }
 
