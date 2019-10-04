@@ -4,7 +4,7 @@ use crate::pixel::{Pixel, Color};
 use crate::world::World;
 use minifb::{Window, Key, WindowOptions};
 use crate::lightsource::Lightsource;
-use crate::shapes::{Material, Shape};
+use crate::shapes::Shape;
 use std::rc::Rc;
 
 const FOV: f64 = 70.;

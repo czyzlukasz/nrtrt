@@ -1,4 +1,4 @@
-use crate::shapes::{Shape};
+use crate::shapes::Shape;
 use crate::ray::Ray;
 use crate::lightsource::Lightsource;
 use std::rc::Rc;

@@ -49,9 +49,22 @@ impl ops::AddAssign<Color> for Color
         self.r += rhs.r;
         self.g += rhs.g;
         self.b += rhs.b;
-
     }
 }
+
+impl ops::Mul<f64> for Color
+{
+    type Output = Color;
+    fn mul(self, rhs: f64) -> Color
+    {
+        Color {
+            r: ((self.r as f64) * rhs) as u8,
+            g: ((self.g as f64) * rhs) as u8,
+            b: ((self.b as f64) * rhs) as u8,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Pixel
 {
