@@ -112,7 +112,7 @@ impl Camera{
         if angle > 0.// && angle < 0.5
         {
             let intensity = material.specular_reflectivity() * light.intensity * angle.powf(material.specular_reflection_parameter());
-            let normalized_intensity = (255. * intensity).min(255.);
+            let normalized_intensity = intensity.min(1.);
             material.color() * normalized_intensity
         }
         else {
