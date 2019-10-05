@@ -8,6 +8,8 @@ use crate::shapes::Shape;
 use std::rc::Rc;
 
 const FOV: f64 = 70.;
+//const WIDTH: u32 = 800;
+//const HEIGHT: u32 = 600;
 const WIDTH: u32 = 480;
 const HEIGHT: u32 = 320;
 
@@ -64,15 +66,12 @@ impl Camera{
                 let mut ray_direction = self.direction;
                 ray_direction.rotate_y(first_pixel_angle_horizontal + pixel_to_pixel_angle * x as f64);   //Rotate ray horizontally
                 ray_direction.rotate_x(first_pixel_angle_vertical + pixel_to_pixel_angle * y as f64);   //Rotate ray vertically
-                let ray = Ray{
-                    direction: ray_direction,
-                    start_position: self.starting_point
-                };
-                let items = world.item_that_collide(ray);
+                let ray = Ray::new(&self.starting_point, &ray_direction);
+                let items = world.item_that_collide(&ray);
                 if let Some(item) = items
                 {
-                    let collision_point = item.collision_point(ray).unwrap();
-                    let normal = item.normal_at_point(collision_point).unwrap();
+                    let collision_point = item.collision_point(&ray).unwrap();
+                    let normal = item.normal_at_point(&collision_point).unwrap();
                     for light in world.lights.iter()
                     {
                         if self.can_reflected_ray_hit_light(world, &collision_point, &light)
@@ -94,12 +93,9 @@ impl Camera{
 
     fn can_reflected_ray_hit_light(&self, world: &World, collision_point: &Vector, light: &Lightsource) -> bool
     {
-        let ray = Ray{
-            start_position: *collision_point,
-            direction: light.position - *collision_point,
-
-        };
-        match world.item_that_collide(ray){
+        let direction = light.position - *collision_point;
+        let ray = Ray::new(collision_point, &direction);
+        match world.item_that_collide(&ray){
             Some(_) => false,
             None => true
         }

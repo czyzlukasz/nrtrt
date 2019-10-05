@@ -14,11 +14,11 @@ pub struct Sphere
 
 impl Collision for Sphere
 {
-    fn can_collide(&self, ray: Ray) -> bool
+    fn can_collide(&self, ray: &Ray) -> bool
     {
         return ray.distance_to_point(self.position) <= self.radius;
     }
-    fn collision_point(&self, ray: Ray) -> Option<Vector>
+    fn collision_point(&self, ray: &Ray) -> Option<Vector>
     {
         // start position to center
         let oc = ray.start_position - self.position;
@@ -44,9 +44,9 @@ impl Collision for Sphere
             Some(ray.start_position + ray.direction * t)
         }
     }
-    fn normal_at_point(&self, point: Vector) -> Option<Vector>
+    fn normal_at_point(&self, point: &Vector) -> Option<Vector>
     {
-        let distance = (self.position - point).distance();
+        let distance = (self.position - *point).distance();
         if distance - self.radius > 0.0001
         {
             println!("Difference in length: {} != {}", distance, self.radius);
@@ -54,7 +54,7 @@ impl Collision for Sphere
         }
         else
         {
-            Some(point - self.position)
+            Some(*point - self.position)
         }
     }
 
@@ -103,16 +103,8 @@ mod test
     #[test]
     fn can_collide()
     {
-        let ray = Ray{
-            start_position: Vector{
-                x: -1.,
-                y: 0.,
-                z: -1.},
-            direction: Vector{
-                x: 1.,
-                y: 1.,
-                z: 1.}
-        };
+        let ray = Ray::new(&Vector{x: -1., y: 0., z: -1.},
+                                    &Vector{x: 1., y: 1., z: 1.});
 
         let position = Vector{
             x: 0.,
@@ -135,26 +127,17 @@ mod test
             material: Material::default()
         };
 
-        assert_eq!(true, sphere_just_big_enough.can_collide(ray));
-        assert_eq!(true, sphere_huge.can_collide(ray));
-        assert_eq!(false, sphere_small.can_collide(ray));
+        assert_eq!(true, sphere_just_big_enough.can_collide(&ray));
+        assert_eq!(true, sphere_huge.can_collide(&ray));
+        assert_eq!(false, sphere_small.can_collide(&ray));
     }
 
     #[test]
     fn can_collide_inside_on_border()
     {
-        let ray = Ray{
-            start_position: Vector{
-                x:1.,
-                y:0.,
-                z:0.
-            },
-            direction: Vector{
-                x:-1.,
-                y:0.,
-                z:0.
-            }
-        };
+        let ray = Ray::new(&Vector{x:1., y:0., z:0.},
+                                    &Vector{x:-1., y:0., z:0.});
+
         let sphere_on_border = Sphere{
             radius: 1.,
             position: Vector{
@@ -173,23 +156,15 @@ mod test
             },
             material: Material::default()
         };
-        assert_eq!(true, sphere_on_border.can_collide(ray));
-        assert_eq!(true, sphere_inside.can_collide(ray));
+        assert_eq!(true, sphere_on_border.can_collide(&ray));
+        assert_eq!(true, sphere_inside.can_collide(&ray));
     }
 
     #[test]
     fn collision_point()
     {
-        let ray = Ray{
-            start_position: Vector{
-            x: -1.,
-            y: 1.,
-            z: 1.},
-            direction: Vector{
-                x: 1.,
-                y: 0.,
-                z: 0.}
-        };
+        let ray = Ray::new(&Vector{x: -1., y: 1., z: 1.},
+                                    &Vector{x: 1., y: 0., z: 0.});
 
         let sphere = Sphere{
             radius: 2.,
@@ -200,7 +175,7 @@ mod test
             },
             material: Material::default()
         };
-        let result = sphere.collision_point(ray);
+        let result = sphere.collision_point(&ray);
         match result {
             Some(point) => {
                 assert_approx_eq!(point.x, 8.585786);
@@ -225,11 +200,11 @@ mod test
         };
 
         let point = Vector{
-            x: 0.70710,
-            y: 0.70710,
+            x: std::f64::consts::FRAC_1_SQRT_2,
+            y: std::f64::consts::FRAC_1_SQRT_2,
             z: 0.
         };
-        let normal = sphere.normal_at_point(point).unwrap();
+        let normal = sphere.normal_at_point(&point).unwrap();
         //Add '==' to vector
         //Because the shape is a sphere and its located in (0,0,0), the normal
         //Vector is the same as the point vector.

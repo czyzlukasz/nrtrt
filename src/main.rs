@@ -7,6 +7,8 @@ mod world;
 mod camera;
 mod shapes;
 mod material;
+mod lambertian;
+mod rayarena;
 
 use vector::Vector;
 use lightsource::Lightsource;
@@ -34,7 +36,7 @@ fn main() {
                                                          y: 3.8,
                                                          z: 0.},
                                                   &(20., 20.,),
-                                                  &Material::default())));
+                                                  &Material::new_color(50, 200, 80))));
 
     world.add_light(Rc::new(Lightsource::new(&Vector{x: 30.,
                                                      y: 0.,
@@ -50,6 +52,11 @@ fn main() {
                                                      y: -10.,
                                                      z: -10.},
                     0.2)));
+
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: -0.,
+        y: -5.,
+        z: -0.},
+                                             0.2)));
 
     let mut camera = Camera::new();
     while camera.update()
