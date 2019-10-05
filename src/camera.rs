@@ -5,8 +5,6 @@ use crate::world::World;
 use minifb::{Window, Key, WindowOptions};
 use crate::lightsource::Lightsource;
 use crate::shapes::Shape;
-use crate::rayarena::RayArena;
-use crate::lambertian::Lambertian;
 use std::rc::Rc;
 
 const FOV: f64 = 70.;
@@ -14,14 +12,12 @@ const FOV: f64 = 70.;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 480;
 const HEIGHT: u32 = 320;
-const NUM_OF_SECONDARY_RAYS: u32 = 50;
 
 pub struct Camera{
     buffer: Vec<Pixel>,
     pub starting_point: Vector,
     pub direction: Vector,
-    window: Window,
-    ray_arena: RayArena
+    window: Window
 }
 
 impl Camera{
@@ -35,8 +31,7 @@ impl Camera{
                 y: 0.,
                 z: -1.
             },
-            window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap(),
-            ray_arena: RayArena::new()
+            window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap()
         }
     }
 
@@ -81,7 +76,6 @@ impl Camera{
                     {
                         if self.can_reflected_ray_hit_light(world, &collision_point, &light)
                         {
-//                            self.generate_secondary_rays(world, &normal, )
                             let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
 //                            self.get_pixel(x, y).unwrap().color = color;
                             self.get_pixel(x, y).unwrap().color += color;
