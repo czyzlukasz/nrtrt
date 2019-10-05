@@ -2,16 +2,11 @@ use crate::vector::Vector;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct Ray
 {
     pub start_position: Vector,
     pub direction: Vector,
-    //ID-type tree was chosen because it will later be easier to split the ray generation
-    //To multiple threads
-    id: u32,
-    parent: u32,
-    childrens: Vec<u32>
 }
 
 impl Ray
@@ -20,10 +15,7 @@ impl Ray
     {
         Ray{
             start_position: *start_position,
-            direction: *direction,
-            id: 0,
-            parent: 0,
-            childrens: Vec::new()
+            direction: *direction
         }
     }
     //Calculate the closest distance of the point and the ray (it's 0 if ray comes trough the point)

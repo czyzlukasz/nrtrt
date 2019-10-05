@@ -8,7 +8,7 @@ mod camera;
 mod shapes;
 mod material;
 mod lambertian;
-mod rayarena;
+mod raytree;
 
 use vector::Vector;
 use lightsource::Lightsource;
