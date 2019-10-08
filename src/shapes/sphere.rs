@@ -54,7 +54,7 @@ impl Collision for Sphere
         }
         else
         {
-            Some(*point - self.position)
+            Some((*point - self.position).normalized())
         }
     }
 

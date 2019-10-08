@@ -1,4 +1,5 @@
 use crate::ray::Ray;
+use std::collections::HashMap;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum NodeId {
@@ -33,27 +34,27 @@ impl RayNode{
 }
 
 pub struct RayArena{
-    pub nodes: Vec<RayNode>,
+    pub nodes: HashMap<u32, RayNode>,
     pub max_recursion_depth: u32,
 }
 
 impl RayArena{
     pub fn new(max_recursion_depth: u32) -> RayArena{
         RayArena{
-            nodes: Vec::new(),
+            nodes: HashMap::new(),
             max_recursion_depth,
         }
     }
 
     pub fn get_node(&mut self, node_id: NodeId) -> Option<&RayNode>{
         if let NodeId::Parent(id) = node_id{
-            return self.nodes.get(id as usize);
+            return self.nodes.get(&id);
         }
         None
     }
 
     pub fn get_mut_node(&mut self, id: u32) -> Option<&mut RayNode>{
-        self.nodes.get_mut(id as usize)
+        self.nodes.get_mut(&id)
     }
 
     pub fn add_node(&mut self, parent: NodeId, ray: &Ray) -> NodeId{
@@ -65,14 +66,14 @@ impl RayArena{
                     return NodeId::Invalid;
                 }
                 let new_id = self.nodes.len() as u32;
-                self.nodes.push(RayNode::new(new_id, parent, ray, recursion_depth));
+                self.nodes.insert(new_id, RayNode::new(new_id, parent, ray, recursion_depth));
                 self.get_mut_node(parent_id).unwrap().add_child(new_id);
                 return NodeId::Parent(new_id);
             }
         }
         else if let NodeId::Root = parent{
             let new_id = self.nodes.len() as u32;
-            self.nodes.push(RayNode::new(new_id, NodeId::Root, ray, 0));
+            self.nodes.insert(new_id,RayNode::new(new_id, NodeId::Root, ray, 0));
             return NodeId::Parent(new_id);
         }
         return NodeId::Invalid;

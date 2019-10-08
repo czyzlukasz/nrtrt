@@ -1,13 +1,20 @@
-use crate::vector::Vector;
-use crate::ray::Ray;
-use crate::pixel::{Pixel, Color};
-use crate::world::World;
 use minifb::{Window, Key, WindowOptions};
-use crate::lightsource::Lightsource;
-use crate::shapes::Shape;
 use std::rc::Rc;
+use crate::{
+    shapes::Shape,
+    lightsource::Lightsource,
+    world::World,
+    pixel::{Pixel, Color},
+    ray::Ray,
+    vector::Vector,
+    lambertian::Lambertian,
+    raytree::*
+};
+
 
 const FOV: f64 = 70.;
+const MAX_RAY_DEPTH: u32 = 3;
+const NUM_OF_REFLECTED_RAYS: usize = 40;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 480;
@@ -17,6 +24,8 @@ pub struct Camera{
     buffer: Vec<Pixel>,
     pub starting_point: Vector,
     pub direction: Vector,
+    lambertian: Lambertian,
+    arena: RayArena,
     window: Window
 }
 
@@ -31,6 +40,8 @@ impl Camera{
                 y: 0.,
                 z: -1.
             },
+            lambertian: Lambertian::new(NUM_OF_REFLECTED_RAYS),
+            arena: RayArena::new(MAX_RAY_DEPTH),
             window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap()
         }
     }
@@ -72,21 +83,52 @@ impl Camera{
                 {
                     let collision_point = item.collision_point(&ray).unwrap();
                     let normal = item.normal_at_point(&collision_point).unwrap();
-                    for light in world.lights.iter()
-                    {
-                        if self.can_reflected_ray_hit_light(world, &collision_point, &light)
-                        {
-                            let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
-//                            self.get_pixel(x, y).unwrap().color = color;
-                            self.get_pixel(x, y).unwrap().color += color;
-                            // println!("{:?}", color);
+
+                    // Create reflected rays and add them to the camera
+                    for offset in self.lambertian.get_offsets().iter(){
+                        let new_ray = Ray{
+                            start_position: collision_point,
+                            direction: normal + *offset
+                        };
+                        let node_id = self.arena.add_node(NodeId::Root, &ray);
+                        if let NodeId::Parent(id) = node_id{
+                            self.shoot_reflected_rays(world, id, &collision_point, &normal);
                         }
                     }
+//                    //This is a specular reflection, just for testing
+//                    for light in world.lights.iter()
+//                    {
+//                        if self.can_reflected_ray_hit_light(world, &collision_point, &light)
+//                        {
+//                            let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
+////                            self.get_pixel(x, y).unwrap().color = color;
+//                            self.get_pixel(x, y).unwrap().color += color;
+//                            // println!("{:?}", color);
+//                        }
+//                    }
                 }
                 else
                 {
                     self.get_pixel(x, y).unwrap().color = Color{r: 128, g: 218, b: 235};
                 }
+            }
+        }
+        //Shoot reflected rays recursively untill all rays reached max depth
+    }
+
+    fn shoot_reflected_rays(&mut self, world: &World, id: u32, collision_point: &Vector, normal: &Vector){
+        let ray_node_opt = self.arena.get_node(NodeId::Parent(id));
+        if let Some(ray_node) = ray_node_opt{
+            if let Some(collision_shape) = world.item_that_collide(ray_node.ray)
+            {
+
+            for offset in self.lambertian.get_offsets().iter(){
+                let ray = Ray{
+                    start_position: *collision_point,
+                    direction: normal + *offset
+                };
+
+            }
             }
         }
     }

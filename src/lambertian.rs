@@ -4,7 +4,7 @@ use rand::Rng;
 //List of random vectors that are generated to be used in calculating the
 //'random' diffuse reflections. 'Random' ray is calculated by adding normalized
 //normal vector and one of the vector.
-struct Lambertian{
+pub struct Lambertian{
     vectors: Vec<Vector>
 }
 
