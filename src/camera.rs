@@ -14,11 +14,11 @@ use crate::{
 
 const FOV: f64 = 70.;
 const MAX_RAY_DEPTH: u32 = 3;
-const NUM_OF_REFLECTED_RAYS: usize = 40;
+const NUM_OF_REFLECTED_RAYS: usize = 10;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
-const WIDTH: u32 = 480;
-const HEIGHT: u32 = 320;
+const WIDTH: u32 = 200;
+const HEIGHT: u32 = 200;
 
 pub struct Camera{
     buffer: Vec<Pixel>,
@@ -63,6 +63,7 @@ impl Camera{
         self.window.update_with_buffer(&temp_buffer).unwrap();
         //Clear the buffer
         self.buffer = vec![Pixel::new(); (WIDTH * HEIGHT) as usize];
+        println!("Debug, num of rays: {}", self.arena.nodes.len());
         return self.window.is_open() && !self.window.is_key_down(Key::Escape);
     }
     pub fn shoot_primary_rays(&mut self, world: &World)
@@ -70,6 +71,8 @@ impl Camera{
         let pixel_to_pixel_angle = FOV / WIDTH as f64;
         let first_pixel_angle_horizontal = (WIDTH as i32 / -2) as f64 * pixel_to_pixel_angle;
         let first_pixel_angle_vertical = (HEIGHT as i32 / -2) as f64 * pixel_to_pixel_angle;
+        //Clear the arena
+        self.arena.nodes.clear();
         for x in 0..WIDTH
         {
             for y in 0..HEIGHT
@@ -84,17 +87,10 @@ impl Camera{
                     let collision_point = item.collision_point(&ray).unwrap();
                     let normal = item.normal_at_point(&collision_point).unwrap();
 
-                    // Create reflected rays and add them to the camera
-                    for offset in self.lambertian.get_offsets().iter(){
-                        let new_ray = Ray{
-                            start_position: collision_point,
-                            direction: normal + *offset
-                        };
-                        let node_id = self.arena.add_node(NodeId::Root, &ray);
-                        if let NodeId::Parent(id) = node_id{
-                            self.shoot_reflected_rays(world, id, &collision_point, &normal);
-                        }
-                    }
+                    // Create reflected rays and add them to the arena
+                    let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&collision_point, &normal));
+                    self.shoot_reflected_rays(world, node_id, &collision_point, &normal);
+                }
 //                    //This is a specular reflection, just for testing
 //                    for light in world.lights.iter()
 //                    {
@@ -106,7 +102,7 @@ impl Camera{
 //                            // println!("{:?}", color);
 //                        }
 //                    }
-                }
+//                }
                 else
                 {
                     self.get_pixel(x, y).unwrap().color = Color{r: 128, g: 218, b: 235};
@@ -116,19 +112,25 @@ impl Camera{
         //Shoot reflected rays recursively untill all rays reached max depth
     }
 
-    fn shoot_reflected_rays(&mut self, world: &World, id: u32, collision_point: &Vector, normal: &Vector){
-        let ray_node_opt = self.arena.get_node(NodeId::Parent(id));
+    fn shoot_reflected_rays(&mut self, world: &World, id: NodeId, collision_point: &Vector, normal: &Vector){
+        let ray_node_opt = self.arena.get_node(id);
+        //If parent exists
         if let Some(ray_node) = ray_node_opt{
-            if let Some(collision_shape) = world.item_that_collide(ray_node.ray)
-            {
-
-            for offset in self.lambertian.get_offsets().iter(){
-                let ray = Ray{
-                    start_position: *collision_point,
-                    direction: normal + *offset
-                };
-
+            if ray_node.recursion_depth >= MAX_RAY_DEPTH{
+                return;
             }
+            //If collision can happen
+            if let Some(collision_shape) = world.item_that_collide(&ray_node.clone().ray)
+            {
+                //Shoot reflection rays
+                for offset in self.lambertian.get_offsets().clone().iter(){
+                    let ray= Ray{
+                        direction: *normal + *offset,
+                        start_position: *collision_point
+                    };
+                    let child_node = self.arena.add_node(id, &ray);
+                    self.shoot_reflected_rays(world, child_node, &ray.start_position, &ray.direction);
+                }
             }
         }
     }
