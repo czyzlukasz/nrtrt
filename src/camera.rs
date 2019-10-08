@@ -13,8 +13,8 @@ use crate::{
 
 
 const FOV: f64 = 70.;
-const MAX_RAY_DEPTH: u32 = 3;
-const NUM_OF_REFLECTED_RAYS: usize = 10;
+const MAX_RAY_DEPTH: u32 = 2;
+const NUM_OF_REFLECTED_RAYS: usize = 20;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 200;
@@ -89,7 +89,7 @@ impl Camera{
 
                     // Create reflected rays and add them to the arena
                     let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&collision_point, &normal));
-                    self.shoot_reflected_rays(world, node_id, &collision_point, &normal);
+                    self.shoot_reflected_rays(world, &self.lambertian.get_offsets().clone(), node_id, &collision_point, &normal);
                 }
 //                    //This is a specular reflection, just for testing
 //                    for light in world.lights.iter()
@@ -112,7 +112,7 @@ impl Camera{
         //Shoot reflected rays recursively untill all rays reached max depth
     }
 
-    fn shoot_reflected_rays(&mut self, world: &World, id: NodeId, collision_point: &Vector, normal: &Vector){
+    fn shoot_reflected_rays(&mut self, world: &World, offsets: &Vec<Vector>, id: NodeId, collision_point: &Vector, normal: &Vector){
         let ray_node_opt = self.arena.get_node(id);
         //If parent exists
         if let Some(ray_node) = ray_node_opt{
@@ -120,17 +120,21 @@ impl Camera{
                 return;
             }
             //If collision can happen
-            if let Some(collision_shape) = world.item_that_collide(&ray_node.clone().ray)
+            if let Some(collision_shape) = world.item_that_collide(&ray_node.ray)
             {
                 //Shoot reflection rays
-                for offset in self.lambertian.get_offsets().clone().iter(){
+                for offset in offsets.iter(){
                     let ray= Ray{
                         direction: *normal + *offset,
                         start_position: *collision_point
                     };
                     let child_node = self.arena.add_node(id, &ray);
-                    self.shoot_reflected_rays(world, child_node, &ray.start_position, &ray.direction);
+                    self.shoot_reflected_rays(world, offsets,child_node, &ray.start_position, &ray.direction);
                 }
+            }
+            //Remove the ray if it's not hitting anything
+            else if let NodeId::Parent(non_hitting_ray_id) = id{
+                self.arena.nodes.remove(&non_hitting_ray_id);
             }
         }
     }
