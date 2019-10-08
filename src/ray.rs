@@ -1,6 +1,4 @@
 use crate::vector::Vector;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Ray
@@ -16,6 +14,13 @@ impl Ray
         Ray{
             start_position: *start_position,
             direction: *direction
+        }
+    }
+    pub fn new_empty() -> Ray
+    {
+        Ray{
+            start_position: Vector::new(),
+            direction: Vector::new()
         }
     }
     //Calculate the closest distance of the point and the ray (it's 0 if ray comes trough the point)
