@@ -73,6 +73,7 @@ impl Camera{
         let first_pixel_angle_vertical = (HEIGHT as i32 / -2) as f64 * pixel_to_pixel_angle;
         //Clear the arena
         self.arena.nodes.clear();
+
         for x in 0..WIDTH
         {
             for y in 0..HEIGHT
@@ -80,6 +81,8 @@ impl Camera{
                 let mut ray_direction = self.direction;
                 ray_direction.rotate_y(first_pixel_angle_horizontal + pixel_to_pixel_angle * x as f64);   //Rotate ray horizontally
                 ray_direction.rotate_x(first_pixel_angle_vertical + pixel_to_pixel_angle * y as f64);   //Rotate ray vertically
+
+
                 let ray = Ray::new(&self.starting_point, &ray_direction);
                 let items = world.item_that_collide(&ray);
                 if let Some(item) = items
@@ -90,26 +93,14 @@ impl Camera{
                     // Create reflected rays and add them to the arena
                     let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&collision_point, &normal));
                     self.shoot_reflected_rays(world, &self.lambertian.get_offsets().clone(), node_id);
+                    let color = self.calculate_color(node_id);
                 }
-//                    //This is a specular reflection, just for testing
-//                    for light in world.lights.iter()
-//                    {
-//                        if self.can_reflected_ray_hit_light(world, &collision_point, &light)
-//                        {
-//                            let color = self.calculate_light_intensity(&ray, &item, &collision_point,&normal, &light);
-////                            self.get_pixel(x, y).unwrap().color = color;
-//                            self.get_pixel(x, y).unwrap().color += color;
-//                            // println!("{:?}", color);
-//                        }
-//                    }
-//                }
                 else
                 {
                     self.get_pixel(x, y).unwrap().color = Color{r: 128, g: 218, b: 235};
                 }
             }
         }
-        //Shoot reflected rays recursively untill all rays reached max depth
     }
 
     fn shoot_reflected_rays(&mut self, world: &World, offsets: &Vec<Vector>, id: NodeId){
@@ -119,7 +110,7 @@ impl Camera{
             if ray_node.recursion_depth >= MAX_RAY_DEPTH{
                 return;
             }
-            //If the collision occured
+            //If the collision occurred
             if let Some(collision_shape) = world.item_that_collide(&ray_node.ray){
                 //Iterate over all possible reflected rays and add it only if they collide
                 let new_collision_point = collision_shape.collision_point(&ray_node.ray).unwrap();
@@ -133,33 +124,19 @@ impl Camera{
         }
     }
 
-    fn can_reflected_ray_hit_light(&self, world: &World, collision_point: &Vector, light: &Lightsource) -> bool
-    {
-        let direction = light.position - *collision_point;
-        let ray = Ray::new(collision_point, &direction);
-        match world.item_that_collide(&ray){
-            Some(_) => false,
-            None => true
+    fn calculate_color(&self, id: NodeId) -> Color{
+        if let NodeId::Parent(parent_id) = id{
+            let end_nodes = self.arena.get_last_nodes(id);
+
         }
+        Color::white()
     }
 
-    fn calculate_light_intensity(&self, ray: &Ray, material: &Rc<dyn Shape>, collision_point: &Vector, normal: &Vector, light: &Lightsource) -> Color
-    {
-        let vector_from_collision_to_light = light.position - *collision_point;
-        let angle = ray.direction.normalized().reflection(normal.normalized()).dot(vector_from_collision_to_light.normalized());
-        if angle > 0.// && angle < 0.5
-        {
-            let intensity = material.specular_reflectivity() * light.intensity * angle.powf(material.specular_reflection_parameter());
-            let normalized_intensity = intensity.min(1.);
-            material.color() * normalized_intensity
+    fn can_light_reach_point(&self, world: &World, light_position:&Vector, point: &Vector) -> bool{
+        let ray = Ray::new(point, &(*light_position - *point));
+        if let Some(_) = world.item_that_collide(&ray){
+            return true;
         }
-        else {
-            Color{
-                r: 0,
-                g: 0,
-                b: 0
-            }
-        }
-
+        false
     }
 }

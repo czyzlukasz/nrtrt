@@ -75,13 +75,10 @@ impl Collision for Sphere
 
 impl MaterialTrait for Sphere
 {
-    fn specular_reflectivity(&self) -> f64 {
-        self.material.specular_reflectivity
+    fn reflectivity(&self) -> f64 {
+        self.material.reflectivity
     }
 
-    fn specular_reflection_parameter(&self) -> f64 {
-        self.material.specular_reflection_parameter
-    }
     fn color(&self) -> Color {
         self.material.color
     }

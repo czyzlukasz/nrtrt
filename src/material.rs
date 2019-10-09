@@ -3,18 +3,16 @@ use crate::pixel::Color;
 #[derive(Copy, Clone)]
 pub struct Material
 {
-    pub specular_reflectivity: f64,
-    pub specular_reflection_parameter: f64,
+    pub reflectivity: f64,
     pub color: Color
 }
 
 impl Material
 {
-    pub fn new(specular_reflectivity: f64, specular_reflection_parameter: f64, color: Color) -> Material
+    pub fn new(reflectivity: f64, color: Color) -> Material
     {
         Material{
-            specular_reflectivity,
-            specular_reflection_parameter,
+            reflectivity,
             color
         }
     }
@@ -22,16 +20,14 @@ impl Material
     pub fn default() -> Material
     {
         Material{
-            specular_reflectivity: 0.6,
-            specular_reflection_parameter: 4.,
+            reflectivity: 0.8,
             color: Color::white()
         }
     }
     pub fn new_color(r: u8, g: u8, b: u8) -> Material
     {
         Material{
-            specular_reflectivity: 0.6,
-            specular_reflection_parameter: 4.,
+            reflectivity: 0.8,
             color: Color{
                 r,
                 g,

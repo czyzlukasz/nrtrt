@@ -18,11 +18,7 @@ pub trait Collision
 
 pub trait MaterialTrait
 {
-    // How reflective is the surface
-    fn specular_reflectivity(&self) -> f64;
-    // How shiny is the surface
-    fn specular_reflection_parameter(&self) -> f64;
-    // Color of the material
+    fn reflectivity(&self) -> f64;
     fn color(&self) -> Color;
 }
 
