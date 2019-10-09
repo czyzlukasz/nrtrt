@@ -46,7 +46,7 @@ impl RayArena{
         }
     }
 
-    pub fn get_node(&mut self, node_id: NodeId) -> Option<&RayNode>{
+    pub fn get_node(&self, node_id: NodeId) -> Option<&RayNode>{
         if let NodeId::Parent(id) = node_id{
             return self.nodes.get(&id);
         }
@@ -59,8 +59,7 @@ impl RayArena{
 
     pub fn add_node(&mut self, parent: NodeId, ray: &Ray) -> NodeId{
         if let NodeId::Parent(parent_id) = parent {
-            let parent_node = self.get_node(parent);
-            if let Some(node) = parent_node {
+            if let Some(node) = self.get_node(parent) {
                 let recursion_depth = node.recursion_depth + 1;
                 if recursion_depth > self.max_recursion_depth{
                     return NodeId::Invalid;
@@ -77,6 +76,27 @@ impl RayArena{
             return NodeId::Parent(new_id);
         }
         return NodeId::Invalid;
+    }
+
+    //Returns the ends (the nodes that have no childrens itself) of a given node
+    pub fn get_last_nodes(&self, id: NodeId) -> Vec<u32>{
+        if let NodeId::Parent(_) = id{
+            if let Some(node) = self.get_node(id){
+                let mut result = Vec::<u32>::new();
+                //If it has no childrens
+                if node.child.len() == 0{
+                    result.push(node.id);
+                }
+                else{
+                    //Iterate over all childs and find its last nodes
+                    for child_id in node.child.iter(){
+                        result.extend(self.get_last_nodes(NodeId::Parent(*child_id)).iter());
+                    }
+                }
+                return result;
+            }
+        }
+        Vec::new()
     }
 }
 
@@ -145,5 +165,37 @@ mod test
         //When recursion depth will get above max_recursion_depth, add_node should return Invalid
         assert_eq!(child_3, NodeId::Invalid);
         assert_eq!(child_4, NodeId::Invalid);
+    }
+
+    #[test]
+    fn get_last_nodes(){
+        let mut ray_arena = RayArena::new(5);
+
+        let root_node = ray_arena.add_node(NodeId::Root, &Ray::new_empty());
+        let child_1 = ray_arena.add_node(root_node, &Ray::new_empty());
+        let child_2 = ray_arena.add_node(root_node, &Ray::new_empty());
+        let child_3 = ray_arena.add_node(child_1, &Ray::new_empty());
+        let child_4 = ray_arena.add_node(child_3, &Ray::new_empty());
+        let child_5 = ray_arena.add_node(child_1, &Ray::new_empty());
+        let child_6 = ray_arena.add_node(child_2, &Ray::new_empty());
+
+        /*
+        Tree looks like this:
+
+                    root_node
+                    /       \
+            child_1         child_2
+            /      \            |
+        child_3     child_5     child_6
+            |
+        child_4
+        */
+        assert_eq!(ray_arena.get_node(child_2).unwrap().child.len(), 1);
+        println!("{:?}", ray_arena.get_node(child_2).unwrap());
+        println!("{:?}", ray_arena.get_node(child_6).unwrap());
+        assert_eq!(ray_arena.get_last_nodes(root_node), vec!(4, 5, 6));
+        assert_eq!(ray_arena.get_last_nodes(child_1), vec!(4, 5));
+        assert_eq!(ray_arena.get_last_nodes(child_2), vec!(6));
+        assert_eq!(ray_arena.get_last_nodes(child_6), vec!(6));
     }
 }
