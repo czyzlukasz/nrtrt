@@ -35,4 +35,15 @@ impl Material
             }
         }
     }
+    pub fn new_color_ref(r: u8, g: u8, b: u8, refl: f64) -> Material
+    {
+        Material{
+            reflectivity: refl,
+            color: Color{
+                r,
+                g,
+                b
+            }
+        }
+    }
 }

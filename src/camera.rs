@@ -14,7 +14,7 @@ use crate::{
 
 const FOV: f64 = 70.;
 const MAX_RAY_DEPTH: u32 = 2;
-const NUM_OF_REFLECTED_RAYS: usize = 20;
+const NUM_OF_REFLECTED_RAYS: usize = 30;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 200;
@@ -91,9 +91,10 @@ impl Camera{
                     let normal = item.normal_at_point(&collision_point).unwrap();
 
                     // Create reflected rays and add them to the arena
-                    let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&collision_point, &normal));
+                    let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&self.starting_point, &ray_direction));
                     self.shoot_reflected_rays(world, &self.lambertian.get_offsets().clone(), node_id);
-                    let color = self.calculate_color(node_id);
+                    let color = self.calculate_node_color(world, node_id);
+                    self.get_pixel(x, y).unwrap().color = color;
                 }
                 else
                 {
@@ -124,19 +125,50 @@ impl Camera{
         }
     }
 
-    fn calculate_color(&self, id: NodeId) -> Color{
+    fn calculate_node_color(&self, world: &World, id: NodeId) -> Color{
         if let NodeId::Parent(parent_id) = id{
-            let end_nodes = self.arena.get_last_nodes(id);
-
+            if let Some(node) = self.arena.get_node(id)
+            {
+                // If it is the last ray, calculate the light that is reaching this point
+                if node.child.len() == 0{
+                    let color = self.calculate_last_node_color(world, id);
+                    return color;
+                }
+                else{
+                    let mut result = self.calculate_last_node_color(world, id);
+                    let num_of_childs = node.child.len();
+                    for child in node.child.iter(){
+                        if let Some(child_node) = self.arena.get_node(NodeId::Parent(*child)){
+                            result += self.calculate_node_color(world, NodeId::Parent(child_node.id)) * child_node.ray.direction.distance() * (1. / NUM_OF_REFLECTED_RAYS as f64);
+                        }
+                    }
+                    return result;
+                }
+            }
         }
         Color::white()
     }
 
-    fn can_light_reach_point(&self, world: &World, light_position:&Vector, point: &Vector) -> bool{
-        let ray = Ray::new(point, &(*light_position - *point));
-        if let Some(_) = world.item_that_collide(&ray){
-            return true;
+    fn calculate_last_node_color(&self, world: &World, id: NodeId) -> Color{
+
+        if let Some(node) = self.arena.get_node(id){
+            if let Some(item) = world.item_that_collide(&node.ray){
+                let collision_point = item.collision_point(&node.ray).unwrap();
+                let normal = item.normal_at_point(&collision_point).unwrap().normalized();
+
+                let mut resulting_color = Color::new();
+                for light in world.lights.iter(){
+                    let ray = Ray::new(&collision_point, &(light.position - collision_point));
+                    if let None = world.item_that_collide(&ray){
+                        let angle = ray.direction.normalized().dot(normal);
+                        if angle > 0.{
+                            resulting_color += (light.color * angle) * item.color() * item.reflectivity();
+                        }
+                    }
+                }
+                return resulting_color;
+            }
         }
-        false
+        Color::new()
     }
 }

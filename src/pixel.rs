@@ -74,6 +74,19 @@ impl ops::Mul<f64> for Color
     }
 }
 
+impl ops::Mul<Color> for Color
+{
+    type Output = Color;
+    fn mul(self, rhs: Color) -> Color
+    {
+        Color {
+            r: (((self.r as f64 / 255.) * (rhs.r as f64 / 255.)) * 255.) as u8,
+            g: (((self.g as f64 / 255.) * (rhs.g as f64 / 255.)) * 255.) as u8,
+            b: (((self.b as f64 / 255.) * (rhs.b as f64 / 255.)) * 255.) as u8,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Pixel
 {
