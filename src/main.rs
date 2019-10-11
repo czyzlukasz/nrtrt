@@ -38,11 +38,11 @@ fn main() {
                                                             z: -9.},
                                            material: Material::new_color_ref(220, 220, 220, 0.8)}));
 
-    world.add_shape(Rc::new(shapes::Sphere{radius: 0.5,
-                                           position: Vector{x: 5.2,
-                                                            y: 2.,
-                                                            z: -7.},
-                                           material: Material::new_color_ref(220, 5, 10, 0.9)}));
+    world.add_shape(Rc::new(shapes::Sphere{radius: 1.5,
+                                           position: Vector{x: 3.2,
+                                                            y: -2.,
+                                                            z: -9.},
+                                           material: Material::new_color_ref(230, 5, 10, 0.9)}));
 
     world.add_shape(Rc::new(shapes::Rectangle::new(&Vector{x: 0.,
                                                          y: 3.8,
@@ -87,7 +87,7 @@ fn main() {
                 println!("Total ray shot count: {}", camera.total_num_of_rays);
             },
             UpdateStatus::Finished =>{
-                if saved == true{
+                if saved == false{
                     saved = true;
                     camera.save_image();
                 }

@@ -18,8 +18,8 @@ pub enum UpdateStatus{
 
 const FOV: f64 = 70.;
 // const MAX_RAY_DEPTH: u32 = 0;
-const MAX_RAY_DEPTH: u32 = 3;
-const NUM_OF_REFLECTED_RAYS: usize = 150;
+const MAX_RAY_DEPTH: u32 = 2;
+const NUM_OF_REFLECTED_RAYS: usize = 200;
 const WIDTH: u32 = 400;
 const HEIGHT: u32 = 300;
 // const WIDTH: u32 = 200;
