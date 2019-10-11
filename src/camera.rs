@@ -1,11 +1,12 @@
 use minifb::{Window, Key, WindowOptions};
+use image;
 use crate::{
     world::World,
     pixel::{Pixel, Color},
     ray::Ray,
     vector::Vector,
     lambertian::Lambertian,
-    raytree::*
+    raytree::*,
 };
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -16,12 +17,13 @@ pub enum UpdateStatus{
 }
 
 const FOV: f64 = 70.;
+// const MAX_RAY_DEPTH: u32 = 0;
 const MAX_RAY_DEPTH: u32 = 3;
-const NUM_OF_REFLECTED_RAYS: usize = 100;
-//const WIDTH: u32 = 800;
-//const HEIGHT: u32 = 600;
-const WIDTH: u32 = 200;
-const HEIGHT: u32 = 200;
+const NUM_OF_REFLECTED_RAYS: usize = 150;
+const WIDTH: u32 = 400;
+const HEIGHT: u32 = 300;
+// const WIDTH: u32 = 200;
+// const HEIGHT: u32 = 200;
 const WIDTH_CHUNK: u32 = 20;
 const HEIGHT_CHUNK: u32 = 20;
 
@@ -32,7 +34,7 @@ pub struct Camera{
     lambertian: Lambertian,
     arena: RayArena,
     window: Window,
-    chunk_num: u32,
+    pub chunk_num: u32,
     pub total_num_of_rays: u64
 }
 
@@ -41,7 +43,7 @@ impl Camera{
     {
         Camera{
             buffer: vec![Pixel::new(); (WIDTH * HEIGHT) as usize],
-            starting_point: Vector::new(),
+            starting_point: Vector{x:0., y:0., z: 5.},
             direction: Vector{
                 x: 0.,
                 y: 0.,
@@ -70,6 +72,7 @@ impl Camera{
         {
             temp_buffer.push(self.buffer[pixel as usize].color.to_u32());
         }
+
         self.window.update_with_buffer(&temp_buffer).unwrap();
         match self.window.is_open() && !self.window.is_key_down(Key::Escape){
             false => UpdateStatus::AboutToExit,
@@ -81,6 +84,19 @@ impl Camera{
                 }
         }
     }
+
+    pub fn save_image(&self){
+        // Lame method but works
+        let mut buffer = Vec::with_capacity((WIDTH * HEIGHT * 3) as usize);
+        for pixel in self.buffer.iter(){
+            let pixel_val = pixel.color.to_u32();
+            buffer.push(((pixel_val >> 16) & 255) as u8);
+            buffer.push(((pixel_val >> 8) & 255) as u8);
+            buffer.push((pixel_val & 255) as u8);
+        }
+        image::save_buffer("image.png", &buffer, WIDTH, HEIGHT, image::RGB(8)).unwrap();
+    }
+
     pub fn shoot_primary_rays(&mut self, world: &World)
     {
         let pixel_to_pixel_angle = FOV / WIDTH as f64;
