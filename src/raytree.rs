@@ -53,12 +53,15 @@ impl RayArena{
         None
     }
 
-    pub fn get_mut_node(&mut self, id: u32) -> Option<&mut RayNode>{
-        self.nodes.get_mut(&id)
+    pub fn get_mut_node(&mut self, node_id: NodeId) -> Option<&mut RayNode>{
+        if let NodeId::Parent(id) = node_id{
+            return self.nodes.get_mut(&id);
+        }
+        None
     }
 
     pub fn add_node(&mut self, parent: NodeId, ray: &Ray) -> NodeId{
-        if let NodeId::Parent(parent_id) = parent {
+        if let NodeId::Parent(_) = parent {
             if let Some(node) = self.get_node(parent) {
                 let recursion_depth = node.recursion_depth + 1;
                 if recursion_depth > self.max_recursion_depth{
@@ -66,7 +69,7 @@ impl RayArena{
                 }
                 let new_id = self.nodes.len() as u32;
                 self.nodes.insert(new_id, RayNode::new(new_id, parent, ray, recursion_depth));
-                self.get_mut_node(parent_id).unwrap().add_child(new_id);
+                self.get_mut_node(parent).unwrap().add_child(new_id);
                 return NodeId::Parent(new_id);
             }
         }
@@ -79,6 +82,7 @@ impl RayArena{
     }
 
     //Returns the ends (the nodes that have no childrens itself) of a given node
+    #[warn(dead_code)]
     pub fn get_last_nodes(&self, id: NodeId) -> Vec<u32>{
         if let NodeId::Parent(_) = id{
             if let Some(node) = self.get_node(id){
@@ -97,6 +101,29 @@ impl RayArena{
             }
         }
         Vec::new()
+    }
+
+    pub fn remove_node_with_childs(&mut self, id: NodeId){
+        if let NodeId::Parent(node_id) = id{
+            let mut parent_id = None;
+            if let Some(node) = self.get_node(id){
+                parent_id = Some(node.parent);
+                // Recursively remove all childs
+                for child_id in node.child.clone().iter(){
+                    self.remove_node_with_childs(NodeId::Parent(*child_id));
+                }
+            }
+            // Remove the parent
+            if let Some(parent_id) = parent_id{
+                if let Some(parent_node) = self.get_mut_node(parent_id){
+                    // Because remove_item is unstable
+                    let index = parent_node.child.iter().position(|x| *x == node_id).unwrap();
+                    parent_node.child.remove(index);
+                }
+            }
+            // Remove item itself
+            self.nodes.remove(&node_id);
+        }
     }
 }
 
@@ -197,5 +224,42 @@ mod test
         assert_eq!(ray_arena.get_last_nodes(child_1), vec!(4, 5));
         assert_eq!(ray_arena.get_last_nodes(child_2), vec!(6));
         assert_eq!(ray_arena.get_last_nodes(child_6), vec!(6));
+    }
+    
+    #[test]
+    fn remove_node_with_childs(){
+        let mut ray_arena = RayArena::new(5);
+
+        let root_node = ray_arena.add_node(NodeId::Root, &Ray::new_empty());
+        let child_1 = ray_arena.add_node(root_node, &Ray::new_empty());
+        let child_2 = ray_arena.add_node(root_node, &Ray::new_empty());
+        let child_3 = ray_arena.add_node(child_1, &Ray::new_empty());
+        let child_4 = ray_arena.add_node(child_3, &Ray::new_empty());
+        let child_5 = ray_arena.add_node(child_1, &Ray::new_empty());
+        let child_6 = ray_arena.add_node(child_2, &Ray::new_empty());
+
+        /*
+        Tree looks like this:
+
+                    root_node
+                    /       \
+            child_1         child_2
+            /      \            |
+        child_3     child_5     child_6
+            |
+        child_4
+        */
+
+        ray_arena.remove_node_with_childs(child_1);
+        assert!(ray_arena.get_node(child_1).is_none());
+        assert!(ray_arena.get_node(child_3).is_none());
+        assert!(ray_arena.get_node(child_4).is_none());
+        assert!(ray_arena.get_node(child_5).is_none());
+    
+        assert!(ray_arena.get_node(root_node).is_some());
+        assert!(ray_arena.get_node(child_2).is_some());
+        assert!(ray_arena.get_node(child_6).is_some());
+
+        assert_eq!(ray_arena.get_node(root_node).unwrap().child, vec!(2));
     }
 }

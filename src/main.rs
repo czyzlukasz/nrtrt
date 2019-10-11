@@ -24,7 +24,7 @@ fn main() {
                                            position: Vector{x: -1.,
                                                             y: 2.,
                                                             z: -13.},
-                                           material: Material::new_color_ref(240, 200, 80, 0.95)}));
+                                           material: Material::new_color_ref(255, 255, 255, 0.95)}));
 
     world.add_shape(Rc::new(shapes::Sphere{radius: 2.,
                                            position: Vector{x: 0.7,
@@ -36,7 +36,7 @@ fn main() {
                                                          y: 3.8,
                                                          z: 0.},
                                                   &(20., 20.,),
-                                                  &Material::new_color_ref(50, 200, 10, 0.3))));
+                                                  &Material::new_color_ref(50, 255, 10, 0.3))));
 
     // world.add_light(Rc::new(Lightsource::new(&Vector{x: 30.,
     //                                                  y: 0.,
@@ -48,10 +48,10 @@ fn main() {
     //                                                  z: -50.},
     //                 0.3)));
 
-    // world.add_light(Rc::new(Lightsource::new(&Vector{x: -10.,
-    //                                                  y: -10.,
-    //                                                  z: -10.},
-    //                 0.2)));
+    world.add_light(Rc::new(Lightsource::new(&Vector{x: -10.,
+                                                     y: -10.,
+                                                     z: -10.},
+                    0.6)));
 
     world.add_light(Rc::new(Lightsource::new(&Vector{x: -0.,
         y: -5.,

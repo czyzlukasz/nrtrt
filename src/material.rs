@@ -9,6 +9,7 @@ pub struct Material
 
 impl Material
 {
+    #[warn(dead_code)]
     pub fn new(reflectivity: f64, color: Color) -> Material
     {
         Material{
@@ -17,6 +18,7 @@ impl Material
         }
     }
 
+    #[warn(dead_code)]
     pub fn default() -> Material
     {
         Material{
@@ -24,6 +26,8 @@ impl Material
             color: Color::white()
         }
     }
+
+    #[warn(dead_code)]
     pub fn new_color(r: u8, g: u8, b: u8) -> Material
     {
         Material{
@@ -35,6 +39,7 @@ impl Material
             }
         }
     }
+    
     pub fn new_color_ref(r: u8, g: u8, b: u8, refl: f64) -> Material
     {
         Material{

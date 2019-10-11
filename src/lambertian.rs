@@ -12,7 +12,7 @@ impl Lambertian{
     pub fn new(num_of_vectors: usize) -> Lambertian{
         let mut vectors = Vec::with_capacity(num_of_vectors);
         let mut rng = rand::thread_rng();
-        for idx in 0..num_of_vectors{
+        for _ in 0..num_of_vectors{
             let x: f64 = rng.gen_range(-1., 1.);
             let y_bounds = (1. - x.powi(2)).sqrt();
             let y: f64 = rng.gen_range(-y_bounds, y_bounds);
@@ -42,7 +42,6 @@ impl Lambertian{
 #[cfg(test)]
 mod test{
     use crate::lambertian::Lambertian;
-    use crate::vector::Vector;
     use assert_approx_eq::assert_approx_eq;
 
     #[test]

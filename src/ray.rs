@@ -16,6 +16,8 @@ impl Ray
             direction: *direction
         }
     }
+
+    #[warn(dead_code)]
     pub fn new_empty() -> Ray
     {
         Ray{

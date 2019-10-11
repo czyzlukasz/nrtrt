@@ -1,8 +1,5 @@
 use minifb::{Window, Key, WindowOptions};
-use std::rc::Rc;
 use crate::{
-    shapes::Shape,
-    lightsource::Lightsource,
     world::World,
     pixel::{Pixel, Color},
     ray::Ray,
@@ -14,11 +11,13 @@ use crate::{
 
 const FOV: f64 = 70.;
 const MAX_RAY_DEPTH: u32 = 2;
-const NUM_OF_REFLECTED_RAYS: usize = 30;
+const NUM_OF_REFLECTED_RAYS: usize = 5;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 200;
 const HEIGHT: u32 = 200;
+const WIDTH_CHUNK: u32 = 20;
+const HEIGHT_CHUNK: u32 = 20;
 
 pub struct Camera{
     buffer: Vec<Pixel>,
@@ -26,7 +25,8 @@ pub struct Camera{
     pub direction: Vector,
     lambertian: Lambertian,
     arena: RayArena,
-    window: Window
+    window: Window,
+    chunk_num: u32
 }
 
 impl Camera{
@@ -42,7 +42,8 @@ impl Camera{
             },
             lambertian: Lambertian::new(NUM_OF_REFLECTED_RAYS),
             arena: RayArena::new(MAX_RAY_DEPTH),
-            window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap()
+            window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap(),
+            chunk_num: 0
         }
     }
 
@@ -88,13 +89,14 @@ impl Camera{
                 if let Some(item) = items
                 {
                     let collision_point = item.collision_point(&ray).unwrap();
-                    let normal = item.normal_at_point(&collision_point).unwrap();
 
                     // Create reflected rays and add them to the arena
                     let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&self.starting_point, &ray_direction));
                     self.shoot_reflected_rays(world, &self.lambertian.get_offsets().clone(), node_id);
                     let color = self.calculate_node_color(world, node_id);
                     self.get_pixel(x, y).unwrap().color = color;
+                    // Remove the rays to save space
+                    self.arena.remove_node_with_childs(node_id);
                 }
                 else
                 {
@@ -126,7 +128,7 @@ impl Camera{
     }
 
     fn calculate_node_color(&self, world: &World, id: NodeId) -> Color{
-        if let NodeId::Parent(parent_id) = id{
+        if let NodeId::Parent(_) = id{
             if let Some(node) = self.arena.get_node(id)
             {
                 // If it is the last ray, calculate the light that is reaching this point
@@ -136,7 +138,6 @@ impl Camera{
                 }
                 else{
                     let mut result = self.calculate_last_node_color(world, id);
-                    let num_of_childs = node.child.len();
                     for child in node.child.iter(){
                         if let Some(child_node) = self.arena.get_node(NodeId::Parent(*child)){
                             result += self.calculate_node_color(world, NodeId::Parent(child_node.id)) * child_node.ray.direction.distance() * (1. / NUM_OF_REFLECTED_RAYS as f64);
