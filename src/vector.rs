@@ -115,7 +115,7 @@ impl Vector
             z: self.z / length
         }
     }
-    #[warn(dead_code)]
+    #[allow(dead_code)]
     pub fn reflection(&self, normal: Vector) -> Vector
     {
         normal * (self.dot(normal) * -2.) + *self

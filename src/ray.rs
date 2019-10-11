@@ -17,7 +17,7 @@ impl Ray
         }
     }
 
-    #[warn(dead_code)]
+    #[allow(dead_code)]
     pub fn new_empty() -> Ray
     {
         Ray{

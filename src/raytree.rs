@@ -82,7 +82,7 @@ impl RayArena{
     }
 
     //Returns the ends (the nodes that have no childrens itself) of a given node
-    #[warn(dead_code)]
+    #[allow(dead_code)]
     pub fn get_last_nodes(&self, id: NodeId) -> Vec<u32>{
         if let NodeId::Parent(_) = id{
             if let Some(node) = self.get_node(id){

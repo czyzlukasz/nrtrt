@@ -8,10 +8,16 @@ use crate::{
     raytree::*
 };
 
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum UpdateStatus{
+    NotFinished,
+    Finished,
+    AboutToExit
+}
 
 const FOV: f64 = 70.;
-const MAX_RAY_DEPTH: u32 = 2;
-const NUM_OF_REFLECTED_RAYS: usize = 5;
+const MAX_RAY_DEPTH: u32 = 3;
+const NUM_OF_REFLECTED_RAYS: usize = 100;
 //const WIDTH: u32 = 800;
 //const HEIGHT: u32 = 600;
 const WIDTH: u32 = 200;
@@ -26,7 +32,8 @@ pub struct Camera{
     lambertian: Lambertian,
     arena: RayArena,
     window: Window,
-    chunk_num: u32
+    chunk_num: u32,
+    pub total_num_of_rays: u64
 }
 
 impl Camera{
@@ -43,18 +50,20 @@ impl Camera{
             lambertian: Lambertian::new(NUM_OF_REFLECTED_RAYS),
             arena: RayArena::new(MAX_RAY_DEPTH),
             window: Window::new("nrtrt", WIDTH as usize, HEIGHT as usize, WindowOptions::default()).unwrap(),
-            chunk_num: 0
+            chunk_num: 0,
+            total_num_of_rays: 0
         }
     }
 
     fn get_pixel(&mut self, x: u32, y: u32) -> Option<&mut Pixel>
     {
-//        Some(&mut self.buffer[(x + y * WIDTH) as usize])
         self.buffer.get_mut((x + y * WIDTH) as usize)
     }
 
-    pub fn update(&mut self) -> bool
+    pub fn update(&mut self) -> UpdateStatus
     {
+        //If all chunks are rendered
+
         //TODO: change that!
         let mut temp_buffer: Vec<u32> = Vec::with_capacity((WIDTH * HEIGHT) as usize);
         for pixel in 0..(WIDTH * HEIGHT)
@@ -62,10 +71,15 @@ impl Camera{
             temp_buffer.push(self.buffer[pixel as usize].color.to_u32());
         }
         self.window.update_with_buffer(&temp_buffer).unwrap();
-        //Clear the buffer
-        self.buffer = vec![Pixel::new(); (WIDTH * HEIGHT) as usize];
-        println!("Debug, num of rays: {}", self.arena.nodes.len());
-        return self.window.is_open() && !self.window.is_key_down(Key::Escape);
+        match self.window.is_open() && !self.window.is_key_down(Key::Escape){
+            false => UpdateStatus::AboutToExit,
+            true => {
+                if (WIDTH / WIDTH_CHUNK) * (HEIGHT / HEIGHT_CHUNK) <= self.chunk_num{
+                    return UpdateStatus::Finished;
+                }                
+                return UpdateStatus::NotFinished;
+                }
+        }
     }
     pub fn shoot_primary_rays(&mut self, world: &World)
     {
@@ -75,9 +89,16 @@ impl Camera{
         //Clear the arena
         self.arena.nodes.clear();
 
-        for x in 0..WIDTH
+        let chunk_x = self.chunk_num % (WIDTH / WIDTH_CHUNK);
+        let start_x = WIDTH_CHUNK * chunk_x;
+        let end_x = WIDTH_CHUNK * (chunk_x + 1);
+        let chunk_y = self.chunk_num / (WIDTH / WIDTH_CHUNK);
+        let start_y = HEIGHT_CHUNK * chunk_y;
+        let end_y = HEIGHT_CHUNK * (chunk_y + 1);
+
+        for x in start_x..end_x
         {
-            for y in 0..HEIGHT
+            for y in start_y..end_y
             {
                 let mut ray_direction = self.direction;
                 ray_direction.rotate_y(first_pixel_angle_horizontal + pixel_to_pixel_angle * x as f64);   //Rotate ray horizontally
@@ -86,16 +107,15 @@ impl Camera{
 
                 let ray = Ray::new(&self.starting_point, &ray_direction);
                 let items = world.item_that_collide(&ray);
-                if let Some(item) = items
+                if let Some(_item) = items
                 {
-                    let collision_point = item.collision_point(&ray).unwrap();
-
                     // Create reflected rays and add them to the arena
                     let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&self.starting_point, &ray_direction));
                     self.shoot_reflected_rays(world, &self.lambertian.get_offsets().clone(), node_id);
                     let color = self.calculate_node_color(world, node_id);
                     self.get_pixel(x, y).unwrap().color = color;
                     // Remove the rays to save space
+                    self.total_num_of_rays += self.arena.nodes.len() as u64;
                     self.arena.remove_node_with_childs(node_id);
                 }
                 else
@@ -104,6 +124,7 @@ impl Camera{
                 }
             }
         }
+        self.chunk_num += 1;
     }
 
     fn shoot_reflected_rays(&mut self, world: &World, offsets: &Vec<Vector>, id: NodeId){
