@@ -18,8 +18,12 @@ pub enum UpdateStatus{
 
 const FOV: f64 = 70.;
 // const MAX_RAY_DEPTH: u32 = 0;
-const MAX_RAY_DEPTH: u32 = 2;
-const NUM_OF_REFLECTED_RAYS: usize = 200;
+const MAX_RAY_DEPTH: u32 = 3;
+const NUM_OF_REFLECTED_RAYS: usize = 100;
+// How many rays should be send in each reflection
+// i.e. 0.75 -> first reflection will have 0.75 * NUM_OF_REFLECTED_RAYS,
+// second will have 0.75 of previous number and so on
+const SCATTERED_RAYS_FALLOFF: f64 = 0.5;
 const WIDTH: u32 = 400;
 const HEIGHT: u32 = 300;
 // const WIDTH: u32 = 200;
@@ -122,8 +126,7 @@ impl Camera{
 
 
                 let ray = Ray::new(&self.starting_point, &ray_direction);
-                let items = world.item_that_collide(&ray);
-                if let Some(_item) = items
+                if let Some(_) = world.item_that_collide(&ray)
                 {
                     // Create reflected rays and add them to the arena
                     let node_id = self.arena.add_node(NodeId::Root, &Ray::new(&self.starting_point, &ray_direction));
@@ -151,10 +154,18 @@ impl Camera{
                 return;
             }
             //If the collision occurred
-            if let Some(collision_shape) = world.item_that_collide(&ray_node.ray){
-                //Iterate over all possible reflected rays and add it only if they collide
-                let new_collision_point = collision_shape.collision_point(&ray_node.ray).unwrap();
-                for offset in offsets.iter(){
+            if let Some((collision_shape, new_collision_point)) = world.item_that_collide(&ray_node.ray){
+                // Calculate the number of required rays
+                let mut num_of_rays = NUM_OF_REFLECTED_RAYS as f64;
+                if ray_node.recursion_depth > 0{
+                    let denominator = (ray_node.recursion_depth + 1) as f64 * SCATTERED_RAYS_FALLOFF;
+                    num_of_rays /= denominator;
+                }
+//                println!("{} {}", num_of_rays, ray_node.recursion_depth);
+                for (idx, offset) in offsets.iter().enumerate(){
+                    if idx > num_of_rays as usize{
+                        break;
+                    }
                     let new_direction = collision_shape.normal_at_point(&new_collision_point).unwrap() + *offset;
                     let new_ray = Ray::new(&new_collision_point, &new_direction);
                     let new_node_id = self.arena.add_node(id, &new_ray);
@@ -190,8 +201,7 @@ impl Camera{
     fn calculate_last_node_color(&self, world: &World, id: NodeId) -> Color{
 
         if let Some(node) = self.arena.get_node(id){
-            if let Some(item) = world.item_that_collide(&node.ray){
-                let collision_point = item.collision_point(&node.ray).unwrap();
+            if let Some((item, collision_point)) = world.item_that_collide(&node.ray){
                 let normal = item.normal_at_point(&collision_point).unwrap().normalized();
 
                 let mut resulting_color = Color::new();
