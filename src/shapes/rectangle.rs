@@ -33,6 +33,10 @@ impl MaterialTrait for Rectangle
     fn color(&self) -> Color {
         self.material.color
     }
+
+    fn is_specular(&self) -> bool {
+        self.material.is_specular
+    }
 }
 
 impl Collision for Rectangle

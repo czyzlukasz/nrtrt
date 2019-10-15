@@ -82,6 +82,10 @@ impl MaterialTrait for Sphere
     fn color(&self) -> Color {
         self.material.color
     }
+
+    fn is_specular(&self) -> bool {
+        self.material.is_specular
+    }
 }
 impl Shape for Sphere
 {

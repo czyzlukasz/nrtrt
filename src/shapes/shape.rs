@@ -20,6 +20,7 @@ pub trait MaterialTrait
 {
     fn reflectivity(&self) -> f64;
     fn color(&self) -> Color;
+    fn is_specular(&self) -> bool;
 }
 
 pub trait Shape: Collision + MaterialTrait

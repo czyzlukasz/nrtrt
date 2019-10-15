@@ -18,12 +18,12 @@ pub enum UpdateStatus{
 
 const FOV: f64 = 70.;
 // const MAX_RAY_DEPTH: u32 = 0;
-const MAX_RAY_DEPTH: u32 = 3;
-const NUM_OF_REFLECTED_RAYS: usize = 100;
+const MAX_RAY_DEPTH: u32 = 4;
+const NUM_OF_REFLECTED_RAYS: usize = 200;
 // How many rays should be send in each reflection
 // i.e. 0.75 -> first reflection will have 0.75 * NUM_OF_REFLECTED_RAYS,
 // second will have 0.75 of previous number and so on
-const SCATTERED_RAYS_FALLOFF: f64 = 0.5;
+const SCATTERED_RAYS_FALLOFF: f64 = 0.75;
 const WIDTH: u32 = 400;
 const HEIGHT: u32 = 300;
 // const WIDTH: u32 = 200;
@@ -155,21 +155,30 @@ impl Camera{
             }
             //If the collision occurred
             if let Some((collision_shape, new_collision_point)) = world.item_that_collide(&ray_node.ray){
-                // Calculate the number of required rays
-                let mut num_of_rays = NUM_OF_REFLECTED_RAYS as f64;
-                if ray_node.recursion_depth > 0{
-                    let denominator = (ray_node.recursion_depth + 1) as f64 * SCATTERED_RAYS_FALLOFF;
-                    num_of_rays /= denominator;
-                }
-//                println!("{} {}", num_of_rays, ray_node.recursion_depth);
-                for (idx, offset) in offsets.iter().enumerate(){
-                    if idx > num_of_rays as usize{
-                        break;
-                    }
-                    let new_direction = collision_shape.normal_at_point(&new_collision_point).unwrap() + *offset;
+                if collision_shape.is_specular(){
+                    let normal = collision_shape.normal_at_point(&new_collision_point).unwrap();
+                    let new_direction = ray_node.ray.direction.reflection(normal);
                     let new_ray = Ray::new(&new_collision_point, &new_direction);
                     let new_node_id = self.arena.add_node(id, &new_ray);
                     self.shoot_reflected_rays(world, offsets, new_node_id);
+                }
+                else {
+                    // Calculate the number of required rays
+                    let mut num_of_rays = NUM_OF_REFLECTED_RAYS as f64;
+                    if ray_node.recursion_depth > 0 {
+                        let denominator = (ray_node.recursion_depth + 1) as f64 * SCATTERED_RAYS_FALLOFF;
+                        num_of_rays /= denominator;
+                    }
+                    //                println!("{} {}", num_of_rays, ray_node.recursion_depth);
+                    for (idx, offset) in offsets.iter().enumerate() {
+                        if idx > num_of_rays as usize {
+                            break;
+                        }
+                        let new_direction = collision_shape.normal_at_point(&new_collision_point).unwrap() + *offset;
+                        let new_ray = Ray::new(&new_collision_point, &new_direction);
+                        let new_node_id = self.arena.add_node(id, &new_ray);
+                        self.shoot_reflected_rays(world, offsets, new_node_id);
+                    }
                 }
             }
         }
@@ -184,7 +193,7 @@ impl Camera{
                     return self.calculate_last_node_color(world, id);
                 }
                 else{
-                    let mut num_of_rays = NUM_OF_REFLECTED_RAYS as f64;
+                    let mut num_of_rays = node.child.len() as f64;
                     if node.recursion_depth > 0{
                         let denominator = (node.recursion_depth + 1) as f64 * SCATTERED_RAYS_FALLOFF;
                         num_of_rays /= denominator;
