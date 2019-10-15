@@ -181,14 +181,19 @@ impl Camera{
             {
                 // If it is the last ray, calculate the light that is reaching this point
                 if node.child.len() == 0{
-                    let color = self.calculate_last_node_color(world, id);
-                    return color;
+                    return self.calculate_last_node_color(world, id);
                 }
                 else{
+                    let mut num_of_rays = NUM_OF_REFLECTED_RAYS as f64;
+                    if node.recursion_depth > 0{
+                        let denominator = (node.recursion_depth + 1) as f64 * SCATTERED_RAYS_FALLOFF;
+                        num_of_rays /= denominator;
+                    }
+                    let one_over_num_of_rays = 1. / num_of_rays;
                     let mut result = self.calculate_last_node_color(world, id);
                     for child in node.child.iter(){
                         if let Some(child_node) = self.arena.get_node(NodeId::Parent(*child)){
-                            result += self.calculate_node_color(world, NodeId::Parent(child_node.id)) * child_node.ray.direction.distance() * (1. / NUM_OF_REFLECTED_RAYS as f64);
+                            result += self.calculate_node_color(world, NodeId::Parent(child_node.id)) * child_node.ray.direction.distance() * one_over_num_of_rays;
                         }
                     }
                     return result;
